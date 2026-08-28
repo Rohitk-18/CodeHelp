@@ -8,7 +8,7 @@ from app import bcrypt
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('health'))
+        return redirect(url_for('main.dashboard'))
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -50,7 +50,7 @@ def register():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('health'))
+        return redirect(url_for('main.dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
@@ -65,7 +65,7 @@ def login():
 
         login_user(user, remember=remember)
         next_page = request.args.get('next')
-        return redirect(next_page or url_for('health'))
+        return redirect(next_page or url_for('main.dashboard'))
 
     return render_template('auth/login.html')
 

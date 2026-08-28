@@ -34,6 +34,9 @@ def create_app():
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
+    from app.routes.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
     with app.app_context():
         db.create_all()
 

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}CodeHelp — AI Coding Practice Companion{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>CodeHelp</h1>
+    <p>An AI-powered coding practice companion that helps you learn — not just get answers.</p>
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.dashboard') }}">Go to Dashboard</a>
+    {% else %}
+        <a href="{{ url_for('auth.register') }}">Get Started</a>
+        <a href="{{ url_for('auth.login') }}">Log In</a>
+    {% endif %}
+</div>
+{% endblock %}

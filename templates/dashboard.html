@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — CodeHelp{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Welcome, {{ user.username }}</h1>
+    <p>Your coding practice dashboard.</p>
+
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <h3>Problems Attempted</h3>
+            <p class="stat-number">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Solved Independently</h3>
+            <p class="stat-number">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Hint Assisted</h3>
+            <p class="stat-number">0</p>
+        </div>
+    </div>
+
+    <div class="dashboard-actions">
+        <h2>Start Practicing</h2>
+        <p>Connect your LeetCode profile and start a problem session.</p>
+        <a href="#">Connect LeetCode</a>
+    </div>
+</div>
+{% endblock %}
