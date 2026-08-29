@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Connect Profile — CodeHelp{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Connect Coding Profile</h1>
+    <p>Connect your profile from a supported platform.</p>
+    <form method="POST" action="{{ url_for('main.connect_profile') }}">
+        <div class="connect-row">
+            <select name="platform" required>
+                <option value="" disabled selected>Select platform</option>
+                <option value="leetcode">🟡 LeetCode</option>
+                <option value="codeforces">🔵 Codeforces</option>
+                <option value="gfg">🟢 GeeksforGeeks</option>
+            </select>
+            <input 
+                type="text" 
+                name="username" 
+                placeholder="Enter your username"
+                required
+            />
+            <button type="submit">Connect</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
