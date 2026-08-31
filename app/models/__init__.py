@@ -43,7 +43,9 @@ class Problem(db.Model):
     external_id = db.Column(db.String(50), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     title_slug = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
+    description = db.Column(db.Text, nullable=False)
+    examples = db.Column(db.JSON)
+    constraints = db.Column(db.JSON)
     difficulty = db.Column(db.String(20))
     tags = db.Column(db.JSON)
     created_at = db.Column(db.DateTime,

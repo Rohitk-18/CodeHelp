@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Session — CodeHelp{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1>Start a Problem Session</h1>
+
+    <form method="POST">
+        <select name="platform" id="platform" required onchange="updateProblemInput()">
+            <option value="" disabled selected>Select platform</option>
+            <option value="leetcode">LeetCode</option>
+            <option value="codeforces">Codeforces</option>
+            <option value="gfg">GeeksforGeeks</option>
+        </select>
+
+        <div id="leetcode-input" style="display:none;">
+            <input
+                type="text"
+                name="lc_identifier"
+                id="lc_identifier"
+                placeholder="Problem number (e.g. 1) or slug (e.g. two-sum)"
+            />
+        </div>
+
+        <div id="slug-input" style="display:none;">
+            <input
+                type="text"
+                name="title_slug"
+                id="title_slug"
+                placeholder="Problem slug"
+            />
+            <span class="tooltip-wrapper">
+                ℹ️
+                <span class="tooltip-text">
+                    The slug is the last part of the problem URL.
+                    For example: codeforces.com/problems/<strong>two-sum</strong>
+                </span>
+            </span>
+
+            <input
+                type="text"
+                name="problem_title"
+                id="problem_title"
+                placeholder="Problem title"
+            />
+
+            <textarea 
+                name="problem_statement"
+                id="problem_statement"
+                placeholder="Paste the full problem statement here"
+                rows="5"
+            ></textarea>
+
+            <textarea 
+                name="examples"
+                id="examples"
+                placeholder="Past examples here"
+                rows="4"
+            ></textarea>
+
+            <textarea 
+                name="constraints"
+                id="constraints"
+                placeholder="Paste constraints here"
+                rows="3"
+            ></textarea>
+        </div>
+
+        <button type="submit">Start Session</button>
+    </form>
+</div>
+
+<script>
+function updateProblemInput() {
+    const platform = document.getElementById('platform').value;
+    const lcInput = document.getElementById('leetcode-input');
+    const slugInput = document.getElementById('slug-input');
+    const lcIdentifier = document.getElementById('lc_identifier');
+    const titleSlug = document.getElementById('title_slug');
+
+    if (platform === 'leetcode') {
+        lcInput.style.display = 'block';
+        slugInput.style.display = 'none';
+        lcIdentifier.required = true;
+        titleSlug.required = false;
+    } else if (platform) {
+        lcInput.style.display = 'none';
+        slugInput.style.display = 'block';
+        lcIdentifier.required = false;
+        titleSlug.required = true;
+    } else {
+        lcInput.style.display = 'none';
+        slugInput.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

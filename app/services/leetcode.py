@@ -48,6 +48,7 @@ def get_problem(title_slug):
                 name
             }
             exampleTestcases
+            constraints: content
         }
     }
     """
@@ -59,6 +60,22 @@ def get_problem(title_slug):
             timeout=10
         )
         data = response.json()
-        return data.get('data', {}).get('question')
+        question = data.get('data', {}).get('question')
+        if not question:
+            return None
+
+        examples = []
+        if question.get('exampleTestcases'):
+            examples = question['exampleTestcases'].split('\n')
+
+        return {
+            'questionId': question['questionId'],
+            'title': question['title'],
+            'titleSlug': question['titleSlug'],
+            'content': question['content'],
+            'difficulty': question['difficulty'],
+            'topicTags': question.get('topicTags', []),
+            'examples': examples
+        }
     except Exception:
         return None
