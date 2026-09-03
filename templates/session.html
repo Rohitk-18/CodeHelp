@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="session-container">
+
     <div class="problem-header">
         <h1>{{ problem.title }}</h1>
         <span class="difficulty {{ problem.difficulty | lower }}">{{ problem.difficulty }}</span>
@@ -17,6 +18,7 @@
 
     <hr>
 
+    {% if session.status == 'in_progress' %}
     <div class="attempt-section">
         <h2>Submit Your Attempt</h2>
         <form method="POST" action="{{ url_for('main.submit_attempt', session_id=session.id) }}">
@@ -29,15 +31,15 @@
 
             <select name="platform_verdict" required>
                 <option value="" disabled selected>What was your result?</option>
-                <option value="accepted">Accepted</option>
+                <option value="accepted">Accepted ✓</option>
                 <option value="wrong_answer">Wrong Answer</option>
                 <option value="time_limit_exceeded">Time Limit Exceeded</option>
                 <option value="runtime_error">Runtime Error</option>
                 <option value="not_submitted">Not Submitted Yet</option>
             </select>
 
-            <textarea 
-                name="code" 
+            <textarea
+                name="code"
                 placeholder="Paste your code here"
                 rows="12"
                 required
@@ -46,18 +48,115 @@
             <button type="submit">Submit for Review</button>
         </form>
     </div>
-
-    {% if attempts %}
-    <hr>
-    <div class="attempts-history">
-        <h2>Previous Attempts ({{ attempts | length }})</h2>
-        {% for attempt in attempts %}
-        <div class="attempt-card">
-            <p>Attempt {{ attempt.attempt_number }} — {{ attempt.language }} — {{ attempt.platform_verdict }}</p>
-            <p><small>{{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</small></p>
-        </div>
-        {% endfor %}
+    {% else %}
+    <div class="session-completed">
+        <h2>Problem solved!</h2>
+        <p>
+            You completed this problem on attempt #{{ current_attempt.attempt_number }}
+        </p>
     </div>
     {% endif %}
+    {% if current_attempt %}
+    <hr>
+    <div class="attempts-history">
+        <div class="attempt-card">
+            <h3>Attempt #{{ current_attempt.attempt_number }} 
+                — {{ current_attempt.language }} 
+                — {{ current_attempt.platform_verdict or 'No verdict' }}
+            </h3>
+            <small>{{ current_attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+
+            {% if current_attempt.review %}
+            <div class="review-section">
+
+                <div class="review-summary">
+                    <p>{{ current_attempt.review.summary }}</p>
+                </div>
+
+                {% if current_attempt.review.correct %}
+                <div class="review-correct">
+                    <h4>✓ What you did right</h4>
+                    {% for item in current_attempt.review.correct %}
+                    <p class="correct-item">+ {{ item }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if current_attempt.review.issues %}
+                <div class="review-issues">
+                    <h4>! Issues found</h4>
+                    {% for issue in current_attempt.review.issues %}
+                    <div class="issue-card">
+                        <p class="issue-title">{{ issue.title }}</p>
+                        <p class="issue-desc">{{ issue.description }}</p>
+                        <p class="issue-why"><strong>Why it matters:</strong> {{ issue.why_it_matters }}</p>
+                        <p class="issue-think"><strong>Think about:</strong> {{ issue.think_about }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="review-complexity">
+                    <div class="complexity-box">
+                        <p class="complexity-label">TIME</p>
+                        <p class="complexity-value">{{ current_attempt.review.complexity_time }}</p>
+                    </div>
+                    <div class="complexity-box">
+                        <p class="complexity-label">SPACE</p>
+                        <p class="complexity-value">{{ current_attempt.review.complexity_space }}</p>
+                    </div>
+                </div>
+
+                {% if current_attempt.review.think_about_this %}
+                <div class="think-about">
+                    <p class="think-label">THINK ABOUT THIS</p>
+                    <p>{{ current_attempt.review.think_about_this }}</p>
+                </div>
+                {% endif %}
+
+                {% if current_attempt.review.vs_previous and current_attempt.attempt_number > 1 %}
+                <div class="vs-previous">
+                    <h4>VS PREVIOUS ATTEMPT</h4>
+                    {% for item in current_attempt.review.vs_previous.improvements %}
+                    <p class="improvement">✓ {{ item }}</p>
+                    {% endfor %}
+                    {% for item in current_attempt.review.vs_previous.remaining_issues %}
+                    <p class="remaining">~ {{ item }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="hints-section">
+                    <h4>PROGRESSIVE HINTS</h4>
+                    {% if current_attempt.review.hints %}
+                        {% for hint in current_attempt.review.hints %}
+                        <div class="hint-card {% if hint.level > current_attempt.review.hint_level_unlocked %}locked{% endif %}">
+                            <p class="hint-level">Hint {{ hint.level }} — {{ hint.type | title }}</p>
+                            {% if hint.level <= current_attempt.review.hint_level_unlocked %}
+                                <p>{{ hint.hint }}</p>
+                            {% else %}
+                                <form method="POST" action="{{ url_for('main.unlock_hint', review_id=current_attempt.review.id) }}">
+                                    <button type="submit">Reveal Hint {{ hint.level }}</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                {% if not current_attempt.review.solution_revealed %}
+                <div class="solution-section">
+                    <form method="POST" action="{{ url_for('main.reveal_solution', review_id=current_attempt.review.id) }}">
+                        <button type="submit" class="reveal-btn">Reveal Solution</button>
+                    </form>
+                </div>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

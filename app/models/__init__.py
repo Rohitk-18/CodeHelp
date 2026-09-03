@@ -101,11 +101,17 @@ class Review(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     attempt_id = db.Column(db.Integer, db.ForeignKey('attempts.id'), nullable=False)
-    strengths = db.Column(db.JSON)
+    summary = db.Column(db.Text)
+    correct = db.Column(db.JSON)
     issues = db.Column(db.JSON)
+    complexity_time = db.Column(db.String(50))
+    complexity_space = db.Column(db.String(50))
+    think_about_this = db.Column(db.Text)
     hints = db.Column(db.JSON)
-    complexity = db.Column(db.String(100))
-    hint_level = db.Column(db.Integer, default=0)
+    vs_previous = db.Column(db.JSON)
+    status = db.Column(db.String(20), default='needs work')
+    hint_level_unlocked = db.Column(db.Integer, default=0)
+    solution_revealed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime,
                  default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 

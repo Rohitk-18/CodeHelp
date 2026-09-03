@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
-from app.models import db, CodingProfile, Problem, ProblemSession, Attempt
+from app.models import db, CodingProfile, Problem, ProblemSession, Attempt, Review
 from app.services.leetcode import get_user_stats, get_problem
-
+from app.ai.reviewer import review_attempt
+from datetime import datetime, timezone
 main = Blueprint('main', __name__)
 
 @main.route('/')
@@ -181,10 +182,12 @@ def session(session_id):
         user_id=current_user.id
     ).first_or_404()
 
+    current_attempt = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).first()
+
     return render_template('session.html', 
                          session=problem_session,
                          problem=problem_session.problem,
-                         attempts=problem_session.attempts)
+                         current_attempt=current_attempt)
 
 
 @main.route('/session/<int:session_id>/submit', methods=['POST'])
@@ -201,7 +204,7 @@ def submit_attempt(session_id):
 
     code = request.form.get('code', '').strip()
     language = request.form.get('language', '').strip().lower()
-    platform_verdict = request.form.get('platfrom_verdict', '').strip()
+    platform_verdict = request.form.get('platform_verdict', '').strip()
 
     if not code:
         flash('Please enter your code before submitting.', 'error')
@@ -227,9 +230,108 @@ def submit_attempt(session_id):
     db.session.add(attempt)
     db.session.commit()
 
+    previous_attempts = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).filter(Attempt.id != attempt.id).all()
+
+    previous_review = None
+    if previous_attempts:
+        last_attempt = previous_attempts[-1]
+        previous_review = Review.query.filter_by(
+            attempt_id=last_attempt.id
+        ).first()
+
+    # Call AI reviewer
+    review_data = review_attempt(
+        problem=problem_session.problem,
+        attempt=attempt,
+        previous_review=previous_review
+    )
+
+    # Save review
+    review = Review(
+        attempt_id=attempt.id,
+        summary=review_data.get('summary'),
+        correct=review_data.get('correct', []),
+        issues=review_data.get('issues', []),
+        complexity_time=review_data.get('complexity', {}).get('time', 'O(?)'),
+        complexity_space=review_data.get('complexity', {}).get('space', 'O(?)'),
+        think_about_this=review_data.get('think_about_this'),
+        hints=review_data.get('hints', []),
+        vs_previous=review_data.get('vs_previous', {'improvements': [], 'remaining_issues': []}),
+        status=review_data.get('status', 'needs_work'),
+        hint_level_unlocked=0,
+        solution_revealed=False
+    )
+    db.session.add(review)
+
+    # Mark session complete if accepted
+    if platform_verdict == 'accepted':
+        problem_session.status = 'completed'
+        problem_session.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+
+    db.session.commit()
+
     flash(f'Attempt #{attempt_number} submitted successfully.', 'success')
 
     return redirect(url_for(
         'main.session',
         session_id=session_id
     ))
+
+
+@main.route('/review/<int:review_id>/unlock-hint', methods=['POST'])
+@login_required
+def unlock_hint(review_id):
+    review = Review.query.get_or_404(review_id)
+    attempt = Attempt.query.get_or_404(review.attempt_id)
+    problem_session = ProblemSession.query.get_or_404(attempt.session_id)
+
+    if problem_session.user_id != current_user.id:
+        abort(403)
+
+    max_hints = len(review.hints) if review.hints else 3
+    if review.hint_level_unlocked < max_hints:
+        review.hint_level_unlocked += 1
+        db.session.commit()
+
+    return redirect(url_for('main.session', session_id=problem_session.id))
+
+
+@main.route('/review/<int:review_id>/reveal-solution', methods=['POST'])
+@login_required
+def reveal_solution(review_id):
+    review = Review.query.get_or_404(review_id)
+    attempt = Attempt.query.get_or_404(review.attempt_id)
+    problem_session = ProblemSession.query.get_or_404(attempt.session_id)
+
+    if problem_session.user_id != current_user.id:
+        abort(403)
+
+    # Check eligibility
+    attempt_count = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).count()
+
+    minutes_elapsed = (
+        datetime.now(timezone.utc).replace(tzinfo=None) - problem_session.started_at
+    ).total_seconds() / 60
+
+    if attempt_count < 2:
+        flash('You need at least 2 attempts before revealing the solution.', 'error')
+        return redirect(url_for('main.session', session_id=problem_session.id))
+
+    if review.hint_level_unlocked < 1:
+        flash('You need to unlock at least 1 hint before revealing the solution.', 'error')
+        return redirect(url_for('main.session', session_id=problem_session.id))
+
+    if minutes_elapsed < 10:
+        remaining = int(10 - minutes_elapsed)
+        flash(f'Please spend at least 10 minutes on this problem. {remaining} minutes remaining.', 'error')
+        return redirect(url_for('main.session', session_id=problem_session.id))
+
+    review.solution_revealed = True
+    db.session.commit()
+
+    flash('Solution revealed. Study it carefully and understand why your approach differed.', 'success')
+    return redirect(url_for('main.session', session_id=problem_session.id))
