@@ -18,7 +18,16 @@
 
     <hr>
 
-    {% if session.status == 'in_progress' %}
+    {% if has_accepted_attempt %}
+    <div class="problem-solved">
+        <h3>✓ Problem solved</h3>
+        <p>
+        You have already submitted an accepted solution.
+        You can still submit another attempt to explore a different approach.
+        </p>
+    </div>
+    {% endif %}
+
     <div class="attempt-section">
         <h2>Submit Your Attempt</h2>
         <form method="POST" action="{{ url_for('main.submit_attempt', session_id=session.id) }}">
@@ -48,14 +57,7 @@
             <button type="submit">Submit for Review</button>
         </form>
     </div>
-    {% else %}
-    <div class="session-completed">
-        <h2>Problem solved!</h2>
-        <p>
-            You completed this problem on attempt #{{ current_attempt.attempt_number }}
-        </p>
-    </div>
-    {% endif %}
+    
     {% if current_attempt %}
     <hr>
     <div class="attempts-history">
@@ -130,12 +132,12 @@
                     <h4>PROGRESSIVE HINTS</h4>
                     {% if current_attempt.review.hints %}
                         {% for hint in current_attempt.review.hints %}
-                        <div class="hint-card {% if hint.level > current_attempt.review.hint_level_unlocked %}locked{% endif %}">
+                        <div class="hint-card {% if hint.level > session.hint_level_unlocked %}locked{% endif %}">
                             <p class="hint-level">Hint {{ hint.level }} — {{ hint.type | title }}</p>
-                            {% if hint.level <= current_attempt.review.hint_level_unlocked %}
+                            {% if hint.level <= session.hint_level_unlocked %}
                                 <p>{{ hint.hint }}</p>
                             {% else %}
-                                <form method="POST" action="{{ url_for('main.unlock_hint', review_id=current_attempt.review.id) }}">
+                                <form method="POST" action="{{ url_for('main.unlock_hint', session_id=session.id) }}">
                                     <button type="submit">Reveal Hint {{ hint.level }}</button>
                                 </form>
                             {% endif %}
@@ -144,11 +146,21 @@
                     {% endif %}
                 </div>
 
-                {% if not current_attempt.review.solution_revealed %}
+                {% if not session.solution_revealed %}
                 <div class="solution-section">
-                    <form method="POST" action="{{ url_for('main.reveal_solution', review_id=current_attempt.review.id) }}">
+                    <form method="POST" action="{{ url_for('main.reveal_solution', session_id=session.id) }}">
                         <button type="submit" class="reveal-btn">Reveal Solution</button>
                     </form>
+                </div>
+                {% else %}
+                <div class="solution-section">
+                    <h3>Solution</h3>
+                    <pre><code>{{ problem.solution[current_attempt.language] }}</code></pre>
+
+                    <div class="solution-explanation">
+                        <h4>Explanation</h4>
+                        <p style="white-space: pre-line;"> {{ problem.solution_explanation }}</p>
+                    </div>
                 </div>
                 {% endif %}
 

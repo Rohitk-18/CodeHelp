@@ -49,7 +49,8 @@ def review_attempt(problem, attempt, previous_review=None):
             'status': 'needs_work',
             'error': True
         }
-    except Exception:
+    except Exception as e:
+        print("GEMINI ERROR", repr(e))
         return {
             'summary': 'Review failed. Please try submitting again.',
             'correct': [],

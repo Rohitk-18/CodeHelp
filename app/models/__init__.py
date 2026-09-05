@@ -48,6 +48,8 @@ class Problem(db.Model):
     constraints = db.Column(db.JSON)
     difficulty = db.Column(db.String(20))
     tags = db.Column(db.JSON)
+    solution = db.Column(db.JSON)
+    solution_explanation = db.Column(db.Text)
     created_at = db.Column(db.DateTime,
                  default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
@@ -68,6 +70,8 @@ class ProblemSession(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     problem_id = db.Column(db.Integer, db.ForeignKey('problems.id'), nullable=False)
     status = db.Column(db.String(20), default='in_progress')
+    hint_level_unlocked = db.Column(db.Integer, default=0)
+    solution_revealed = db.Column(db.Boolean, default=False)
     started_at = db.Column(db.DateTime,
                  default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     completed_at = db.Column(db.DateTime, nullable=True)
@@ -110,8 +114,6 @@ class Review(db.Model):
     hints = db.Column(db.JSON)
     vs_previous = db.Column(db.JSON)
     status = db.Column(db.String(20), default='needs work')
-    hint_level_unlocked = db.Column(db.Integer, default=0)
-    solution_revealed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime,
                  default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 

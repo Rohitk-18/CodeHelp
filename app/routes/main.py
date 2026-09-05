@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models import db, CodingProfile, Problem, ProblemSession, Attempt, Review
 from app.services.leetcode import get_user_stats, get_problem
 from app.ai.reviewer import review_attempt
+from app.ai.solution import generate_solution
 from datetime import datetime, timezone
 main = Blueprint('main', __name__)
 
@@ -184,10 +185,16 @@ def session(session_id):
 
     current_attempt = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).first()
 
+    has_accepted_attempt = Attempt.query.filter_by(
+                            session_id=problem_session.id,
+                            platform_verdict='accepted'
+                            ).first() is not None
+
     return render_template('session.html', 
                          session=problem_session,
                          problem=problem_session.problem,
-                         current_attempt=current_attempt)
+                         current_attempt=current_attempt,
+                         has_accepted_attempt=has_accepted_attempt)
 
 
 @main.route('/session/<int:session_id>/submit', methods=['POST'])
@@ -260,16 +267,8 @@ def submit_attempt(session_id):
         hints=review_data.get('hints', []),
         vs_previous=review_data.get('vs_previous', {'improvements': [], 'remaining_issues': []}),
         status=review_data.get('status', 'needs_work'),
-        hint_level_unlocked=0,
-        solution_revealed=False
     )
     db.session.add(review)
-
-    # Mark session complete if accepted
-    if platform_verdict == 'accepted':
-        problem_session.status = 'completed'
-        problem_session.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
-
     db.session.commit()
 
     flash(f'Attempt #{attempt_number} submitted successfully.', 'success')
@@ -280,30 +279,25 @@ def submit_attempt(session_id):
     ))
 
 
-@main.route('/review/<int:review_id>/unlock-hint', methods=['POST'])
+@main.route('/session/<int:session_id>/unlock-hint', methods=['POST'])
 @login_required
-def unlock_hint(review_id):
-    review = Review.query.get_or_404(review_id)
-    attempt = Attempt.query.get_or_404(review.attempt_id)
-    problem_session = ProblemSession.query.get_or_404(attempt.session_id)
+def unlock_hint(session_id):
+    problem_session = ProblemSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
 
     if problem_session.user_id != current_user.id:
         abort(403)
 
-    max_hints = len(review.hints) if review.hints else 3
-    if review.hint_level_unlocked < max_hints:
-        review.hint_level_unlocked += 1
+    if problem_session.hint_level_unlocked < 3:
+        problem_session.hint_level_unlocked += 1
         db.session.commit()
 
-    return redirect(url_for('main.session', session_id=problem_session.id))
+    return redirect(url_for('main.session', session_id=session_id))
 
 
-@main.route('/review/<int:review_id>/reveal-solution', methods=['POST'])
+@main.route('/session/<int:session_id>/reveal-solution', methods=['POST'])
 @login_required
-def reveal_solution(review_id):
-    review = Review.query.get_or_404(review_id)
-    attempt = Attempt.query.get_or_404(review.attempt_id)
-    problem_session = ProblemSession.query.get_or_404(attempt.session_id)
+def reveal_solution(session_id):
+    problem_session = ProblemSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
 
     if problem_session.user_id != current_user.id:
         abort(403)
@@ -319,18 +313,40 @@ def reveal_solution(review_id):
 
     if attempt_count < 2:
         flash('You need at least 2 attempts before revealing the solution.', 'error')
-        return redirect(url_for('main.session', session_id=problem_session.id))
+        return redirect(url_for('main.session', session_id=session_id))
 
-    if review.hint_level_unlocked < 1:
+    if problem_session.hint_level_unlocked < 1:
         flash('You need to unlock at least 1 hint before revealing the solution.', 'error')
-        return redirect(url_for('main.session', session_id=problem_session.id))
+        return redirect(url_for('main.session', session_id=session_id))
 
     if minutes_elapsed < 10:
         remaining = int(10 - minutes_elapsed)
         flash(f'Please spend at least 10 minutes on this problem. {remaining} minutes remaining.', 'error')
-        return redirect(url_for('main.session', session_id=problem_session.id))
+        return redirect(url_for('main.session', session_id=session_id))
 
-    review.solution_revealed = True
+    current_attempt = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).first()
+
+    if not current_attempt:
+        flash('You need to submit an attempt before revealing the solution.', 'error')
+        return redirect(url_for('main.session', session_id=session_id))
+
+    problem = problem_session.problem
+    language = current_attempt.language
+
+    # Get existing solutions for this problem
+    solutions = problem.solution or {}
+
+    # Generate the solution for this language if it doesn't exist
+    if language not in solutions:
+        solution_data = generate_solution(problem, language)
+
+        solutions[language] = solution_data.get('solution')
+        problem.solution = solutions
+
+        if not problem.solution_explanation:
+            problem.solution_explanation = solution_data.get('solution_explanation')
+
+    problem_session.solution_revealed = True
     db.session.commit()
 
     flash('Solution revealed. Study it carefully and understand why your approach differed.', 'success')
