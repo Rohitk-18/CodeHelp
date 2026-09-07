@@ -185,6 +185,8 @@ def session(session_id):
 
     current_attempt = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).first()
 
+    attempt_history = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).all()
+
     has_accepted_attempt = Attempt.query.filter_by(
                             session_id=problem_session.id,
                             platform_verdict='accepted'
@@ -194,7 +196,8 @@ def session(session_id):
                          session=problem_session,
                          problem=problem_session.problem,
                          current_attempt=current_attempt,
-                         has_accepted_attempt=has_accepted_attempt)
+                         has_accepted_attempt=has_accepted_attempt,
+                         attempt_history=attempt_history)
 
 
 @main.route('/session/<int:session_id>/submit', methods=['POST'])
@@ -351,3 +354,21 @@ def reveal_solution(session_id):
 
     flash('Solution revealed. Study it carefully and understand why your approach differed.', 'success')
     return redirect(url_for('main.session', session_id=problem_session.id))
+
+
+@main.route('/session/<int:session_id>/attempt/<int:attempt_number>')
+@login_required
+def attempt_review(session_id, attempt_number):
+    probelm_session = ProblemSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
+
+    attempt = Attempt.query.filter_by(session_id=probelm_session.id, attempt_number=attempt_number).first_or_404()
+
+    if not attempt.review:
+        flash('Review for this attempt is not available.', 'error')
+        return redirect(url_for('main.session', session_id=probelm_session.id))
+
+    return render_template('attempt_review.html',
+                           session=probelm_session,
+                           problem=probelm_session.problem,
+                           attempt=attempt,
+                           review=attempt.review)

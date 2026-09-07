@@ -166,6 +166,55 @@
 
             </div>
             {% endif %}
+
+            {% if attempt_history %}
+            <section class="attempt-history">
+                <h2>Attempt History</h2>
+
+                <div class="attempt-history-table">
+                    <div class="history-row history-header">
+                        <span>Attempt</span>
+                        <span>Language</span>
+                        <span>Verdict</span>
+                        <span>Submitted</span>
+                        <span>Action</span>
+                    </div>
+
+                    {% for attempt in attempt_history %}
+                    <div class="history-row">
+                        <span>#{{ attempt.attempt_number }}</span>
+
+                        <span>{{ attempt.language }}</span>
+
+                        <span>
+                            {{ attempt.platform_verdict or 'Not available' }}
+                        </span>
+
+                        <span>
+                            {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+                        </span>
+
+                        <span>
+                            {% if attempt.review %}
+                                <a
+                                    href="{{ url_for(
+                                    'main.attempt_review',
+                                    session_id=session.id,
+                                    attempt_number=attempt.attempt_number
+                                    ) }}"
+                                    target="_blank"
+                                >
+                                    View review
+                                </a>
+                            {% else %}
+                                Review unavailable
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
         </div>
     </div>
     {% endif %}

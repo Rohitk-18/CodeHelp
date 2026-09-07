@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="attempt-review-page">
+
+    <div class="page-header">
+        <h1>Attempt #{{ attempt.attempt_number }} Review</h1>
+    </div>
+
+
+    <!-- Problem -->
+    <section class="problem-section">
+
+        <h3>{{ problem.title }}</h3>
+
+        <div class="problem-description">
+            {{ problem.description | safe }}
+        </div>
+
+        {% if problem.constraints %}
+        <div class="problem-constraints">
+            <h3>Constraints</h3>
+
+            <ul>
+                {% for constraint in problem.constraints %}
+                    <li>{{ constraint }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+    </section>
+
+
+    <!-- Attempt Information -->
+    <section class="attempt-meta">
+        <p>
+            <strong>Attempt:</strong>
+            #{{ attempt.attempt_number }}
+        </p>
+
+        <p>
+            <strong>Language:</strong>
+            {{ attempt.language }}
+        </p>
+
+        <p>
+            <strong>Verdict:</strong>
+            {{ attempt.platform_verdict or 'Not available' }}
+        </p>
+
+        <p>
+            <strong>Submitted:</strong>
+            {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+        </p>
+
+    </section>
+
+
+    <!-- User Code -->
+    <section class="attempt-code">
+
+        <h2>Your Code</h2>
+
+        <pre><code>{{ attempt.code }}</code></pre>
+
+    </section>
+
+
+    <!-- AI Review -->
+    <section class="ai-review">
+
+        <h2>AI Review</h2>
+
+
+        <!-- Summary -->
+        {% if review.summary %}
+        <div class="review-section">
+
+            <h3>Summary</h3>
+
+            <p>
+                {{ review.summary }}
+            </p>
+
+        </div>
+        {% endif %}
+
+
+        <!-- What You Did Well -->
+        {% if review.correct %}
+        <div class="review-section">
+
+            <h3>What You Did Well</h3>
+
+            <ul>
+                {% for item in review.correct %}
+                    <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+
+        </div>
+        {% endif %}
+
+
+        <!-- Issues -->
+        {% if review.issues %}
+        <div class="review-section">
+
+            <h3>Issues</h3>
+            <ul>
+                {% for issue in review.issues %}
+                <li>
+
+                    {% if issue.title %}
+                    <h4>{{ issue.title }}</h4>
+                    {% endif %}
+
+                    {% if issue.description %}
+                    {{ issue.description }}
+                    {% endif %}
+
+                    {% if issue.why_it_matters %}
+                    <br>
+                    {{ issue.why_it_matters }}
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+
+        <!-- Complexity -->
+        {% if review.complexity_time or review.complexity_space %}
+        <div class="review-section">
+
+            <h3>Complexity</h3>
+
+            {% if review.complexity_time %}
+            <p>
+                <strong>Time:</strong>
+                {{ review.complexity_time }}
+            </p>
+            {% endif %}
+
+            {% if review.complexity_space %}
+            <p>
+                <strong>Space:</strong>
+                {{ review.complexity_space }}
+            </p>
+            {% endif %}
+
+        </div>
+        {% endif %}
+    </section>
+
+</div>
+
+{% endblock %}
