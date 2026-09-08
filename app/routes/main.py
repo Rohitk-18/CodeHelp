@@ -355,7 +355,7 @@ def reveal_solution(session_id):
     db.session.commit()
 
     flash('Solution revealed. Study it carefully and understand why your approach differed.', 'success')
-    return redirect(url_for('main.session', session_id=problem_session.id))
+    return redirect(url_for('main.session', session_id=problem_session.id, show_solution=1))
 
 
 @main.route('/session/<int:session_id>/attempt/<int:attempt_number>')

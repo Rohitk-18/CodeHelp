@@ -146,24 +146,24 @@
                     {% endif %}
                 </div>
 
-                {% if not session.solution_revealed %}
-                <div class="solution-section">
-                    <form method="POST" action="{{ url_for('main.reveal_solution', session_id=session.id) }}">
-                        <button type="submit" class="reveal-btn">Reveal Solution</button>
-                    </form>
-                </div>
-                {% else %}
+                
+                {% if request.args.get('show_solution') == '1' %}
                 <div class="solution-section">
                     <h3>Solution</h3>
                     <pre><code>{{ problem.solution[current_attempt.language] }}</code></pre>
 
                     <div class="solution-explanation">
                         <h4>Explanation</h4>
-                        <p style="white-space: pre-line;"> {{ problem.solution_explanation }}</p>
+                        <p style="white-space: pre-line;">{{ problem.solution_explanation }}</p>
                     </div>
                 </div>
+                {% else %}
+                <div class="solution-section">
+                    <form method="POST" action="{{ url_for('main.reveal_solution', session_id=session.id) }}">
+                        <button type="submit" class="reveal-btn">Reveal Solution</button>
+                    </form>
+                </div>
                 {% endif %}
-
             </div>
             {% endif %}
 
