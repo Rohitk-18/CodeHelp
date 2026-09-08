@@ -208,10 +208,6 @@ def submit_attempt(session_id):
         user_id=current_user.id
     ).first_or_404()
 
-    if problem_session.status != 'in_progress':
-        flash('This problem session is no longer active.', 'error')
-        return redirect(url_for('main.session', session_id=session_id))
-
     code = request.form.get('code', '').strip()
     language = request.form.get('language', '').strip().lower()
     platform_verdict = request.form.get('platform_verdict', '').strip()
@@ -273,6 +269,12 @@ def submit_attempt(session_id):
     )
     db.session.add(review)
     db.session.commit()
+
+    if attempt.platform_verdict == 'accepted':
+        if problem_session.status != 'completed':
+            problem_session.status = 'completed'
+            problem_session.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            db.session.commit()
 
     flash(f'Attempt #{attempt_number} submitted successfully.', 'success')
 
