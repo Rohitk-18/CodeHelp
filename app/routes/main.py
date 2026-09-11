@@ -120,7 +120,11 @@ def start_session():
             problem_title = request.form.get('problem_title', '').strip() or title_slug
             problem_description = request.form.get('problem_statement', '').strip()
             examples_text = request.form.get('examples', '').strip()
-            constraints_text = request.form.get('constraints', '').strip()
+            constraints = [
+                constraints.strip()
+                for constraints in request.form.getlist('constraints')
+                if constraints.strip()
+            ]
 
             if not title_slug:
                 flash('Please enter the problem slug.', 'error')
@@ -143,7 +147,7 @@ def start_session():
                     title_slug=title_slug,
                     description=problem_description,
                     examples=examples_text,
-                    constraints=constraints_text,
+                    constraints=constraints,
                     difficulty='Unknown',
                     tags=[]
                 )

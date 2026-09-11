@@ -59,12 +59,22 @@
                 rows="4"
             ></textarea>
 
-            <textarea 
-                name="constraints"
-                id="constraints"
-                placeholder="Paste constraints here"
-                rows="3"
-            ></textarea>
+            <div id="constraints-container">
+                <div class="constraint-row">
+                    <input
+                        type="text"
+                        name="constraints"
+                        placeholder="Enter a constraint"
+                    />
+                    <button type="button" onclick="removeConstraint(this)">
+                        Remove
+                    </button>
+                </div>    
+            </div>
+
+            <button type="button" onclick="addConstraint()">
+                + Add constraint
+            </button>
         </div>
 
         <button type="submit">Start Session</button>
@@ -93,6 +103,34 @@ function updateProblemInput() {
         lcInput.style.display = 'none';
         slugInput.style.display = 'none';
     }
+}
+
+function addConstraint() {
+    const container = document.getElementById('constraints-container');
+    const row = document.createElement('div');
+    row.className = 'constraint-row';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.name = 'constraints';
+    input.placeholder = 'Enter a constraint';
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = 'Remove';
+    removeButton.onclick = function () {
+        removeConstraint(this);
+    }
+
+    row.appendChild(input);
+    row.appendChild(removeButton);
+
+    container.appendChild(row)
+}
+
+function removeConstraint(button) {
+    const row = button.parentElement;
+    row.remove();
 }
 </script>
 {% endblock %}

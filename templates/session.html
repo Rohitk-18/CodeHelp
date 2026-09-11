@@ -16,6 +16,18 @@
         {{ problem.description | safe }}
     </div>
 
+    {% if problem.constraints %}
+    <div class="problem-constraints">
+        <h3>Constraints</h3>
+
+        <ul>
+            {% for constraint in problem.constraints %}
+                <li>{{ constraint }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
     <hr>
 
     {% if has_accepted_attempt %}
