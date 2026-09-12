@@ -15,7 +15,24 @@ def index():
 @login_required
 def dashboard():
     profiles = CodingProfile.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', user=current_user, profiles=profiles)
+
+    sessions = ProblemSession.query.filter_by(user_id=current_user.id).order_by(ProblemSession.started_at.desc()).all()
+
+    total_attempted = ProblemSession.query.filter_by(user_id=current_user.id).with_entities(ProblemSession.problem_id).distinct().count()
+
+    solved_independently = ProblemSession.query.filter_by(user_id=current_user.id, status='completed', hint_level_unlocked=0).count()
+
+    hint_assisted = ProblemSession.query.filter_by(user_id=current_user.id, status='completed').filter(ProblemSession.hint_level_unlocked > 0).count()
+
+    total_attempts = Attempt.query.join(ProblemSession).filter(ProblemSession.user_id==current_user.id).count()
+
+    stats = {
+        'total_attempted': total_attempted,
+        'total_attempts': total_attempts,
+        'solved_independently': solved_independently,
+        'hint_assisted': hint_assisted
+    }
+    return render_template('dashboard.html', user=current_user, profiles=profiles, sessions=sessions, stats=stats)
 
 @main.route('/connect-profile', methods=['GET', 'POST'])
 @login_required

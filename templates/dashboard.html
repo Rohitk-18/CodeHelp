@@ -10,15 +10,19 @@
     <div class="dashboard-stats">
         <div class="stat-card">
             <h3>Problems Attempted</h3>
-            <p class="stat-number">0</p>
+            <p class="stat-number">{{ stats.total_attempted }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Attempts</h3>
+            <p class="stat-number">{{ stats.total_attempts }}</p>
         </div>
         <div class="stat-card">
             <h3>Solved Independently</h3>
-            <p class="stat-number">0</p>
+            <p class="stat-number">{{ stats.solved_independently }}</p>
         </div>
         <div class="stat-card">
             <h3>Hint Assisted</h3>
-            <p class="stat-number">0</p>
+            <p class="stat-number">{{ stats.hint_assisted }}</p>
         </div>
     </div>
 
@@ -30,5 +34,45 @@
             <button>Connect Coding Profile</button>
         </a>
     </div>
+
+    <div class="dashboard-sessions">
+        <h2>Recent Sessions</h2>
+        {% if sessions %} 
+            {% for s in sessions %}
+            <div class="session-card">
+                <div class="session-info">
+                    <p class="session-title">{{ s.problem.title }}</p>
+                    <p class="session-meta">
+                        {{ s.problem.difficulty }}.
+                        {{ s.problem.platform | title}}.
+                        {{ s.attempts | length }} attempt(s)
+                    </p>
+                </div>
+                <div class="session-status">
+                    <span class="status-badge {{ s.status }}">
+                        {{ s.status | replace('_', ' ') | title }}
+                    </span>
+
+                    <a href="{{ url_for('main.session', session_id=s.id) }}">
+                        <button>Continue</button>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No sessions yet.</p>
+        {% endif %}
+    </div>
+
+    {% if profiles %}
+    <div class="dashboard-profiles">
+        <h2>Connected Profiles</h2>
+        {% for profile in profiles %}
+        <div class="profile-card">
+            <p>{{ profile.platform | title }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
