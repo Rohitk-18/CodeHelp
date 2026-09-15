@@ -18,23 +18,23 @@ def register():
 
         if not username or not email or not password:
             flash('All fields are required.', 'error')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
 
         if password != confirm_password:
             flash('Passwords do not match.', 'error')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
 
         if len(password) < 8:
             flash('Password must be at least 8 characters.', 'error')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
 
         if User.query.filter_by(email=email).first():
             flash('Email already registered.', 'error')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
 
         if User.query.filter_by(username=username).first():
             flash('Username already taken.', 'error')
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
 
         password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User(username=username, email=email, password_hash=password_hash)
@@ -44,7 +44,7 @@ def register():
         flash('Account created. Please log in.', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('auth/register.html')
+    return redirect(url_for('auth.login'))
 
 
 @auth.route('/login', methods=['GET', 'POST'])

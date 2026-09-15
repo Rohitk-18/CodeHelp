@@ -1,18 +1,100 @@
 {% extends 'base.html' %}
 
-{% block title %}Login — CodeHelp{% endblock %}
+{% block title %}CodeHelp — Login or Register{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h1>Log In</h1>
-    <form method="POST">
-        <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <label>
-            <input type="checkbox" name="remember"> Remember me
-        </label>
-        <button type="submit">Log In</button>
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-12 col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header p-0">
+                    <div class="d-flex">
+                        <button 
+                            class="btn w-50 py-3 fw-semibold rounded-0 border-0 tab-btn active" 
+                            id="login-tab"
+                            onclick="switchTab('login')">
+                            Log In
+                        </button>
+                        <button 
+                            class="btn w-50 py-3 fw-semibold rounded-0 border-0 tab-btn" 
+                            id="register-tab"
+                            onclick="switchTab('register')">
+                            Register
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- Login Form -->
+                    <div id="login-form">
+                        <form method="POST" action="{{ url_for('auth.login') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" placeholder="you@example.com" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" placeholder="Your password" required />
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                                <label class="form-check-label" for="remember">Remember me</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Log In</button>
+                        </form>
+                    </div>
+
+                    <!-- Register Form -->
+                    <div id="register-form" style="display:none;">
+                        <form method="POST" action="{{ url_for('auth.register') }}">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="username" class="form-control" placeholder="Enter a username" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" placeholder="you@example.com" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control" placeholder="Min 8 characters" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function switchTab(tab) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
+
+    if (tab === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        loginTab.classList.add('active', 'text-primary', 'border-bottom', 'border-primary', 'border-2');
+        registerTab.classList.remove('active', 'text-primary', 'border-bottom', 'border-primary', 'border-2');
+    } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        registerTab.classList.add('active', 'text-primary', 'border-bottom', 'border-primary', 'border-2');
+        loginTab.classList.remove('active', 'text-primary', 'border-bottom', 'border-primary', 'border-2');
+    }
+}
+
+switchTab('login');
+
+</script>
 {% endblock %}
