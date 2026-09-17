@@ -3,233 +3,680 @@
 {% block title %}{{ problem.title }} — CodeHelp{% endblock %}
 
 {% block content %}
-<div class="session-container">
 
-    <div class="problem-header">
-        <h1>{{ problem.title }}</h1>
-        <span class="difficulty {{ problem.difficulty | lower }}">{{ problem.difficulty }}</span>
-        <a href="https://leetcode.com/problems/{{ problem.title_slug }}" 
-           target="_blank">Solve on LeetCode →</a>
+<div class="container-fluid py-4">
+
+    <!-- Session Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 px-2">
+
+        <div>
+            <h1 class="mb-1">{{ problem.title }}</h1>
+
+            <span class="badge text-bg-secondary">
+                {{ problem.difficulty }}
+            </span>
+        </div>
+
+        <a
+            href="https://leetcode.com/problems/{{ problem.title_slug }}"
+            target="_blank"
+            class="btn btn-outline-primary"
+        >
+            Solve on LeetCode →
+        </a>
+
     </div>
 
-    <div class="problem-description">
-        {{ problem.description | safe }}
-    </div>
 
-    {% if problem.constraints %}
-    <div class="problem-constraints">
-        <h3>Constraints</h3>
+    <!-- Main Split Workspace -->
+    <div class="row g-4">
 
-        <ul>
-            {% for constraint in problem.constraints %}
-                <li>{{ constraint }}</li>
-            {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
+        <!-- LEFT: PROBLEM + CODE -->
+        <div class="col-lg-7">
 
-    <hr>
+            <!-- Problem -->
+            <div class="card mb-3">
 
-    {% if has_accepted_attempt %}
-    <div class="problem-solved">
-        <h3>✓ Problem solved</h3>
-        <p>
-        You have already submitted an accepted solution.
-        You can still submit another attempt to explore a different approach.
-        </p>
-    </div>
-    {% endif %}
+                <div class="card-body">
 
-    <div class="attempt-section">
-        <h2>Submit Your Attempt</h2>
-        <form method="POST" action="{{ url_for('main.submit_attempt', session_id=session.id) }}">
-            <select name="language" required>
-                <option value="" disabled selected>Select language</option>
-                <option value="cpp">C++</option>
-                <option value="python">Python</option>
-                <option value="javascript">JavaScript</option>
-            </select>
+                    <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
+                        Problem
+                    </p>
 
-            <select name="platform_verdict" required>
-                <option value="" disabled selected>What was your result?</option>
-                <option value="accepted">Accepted ✓</option>
-                <option value="wrong_answer">Wrong Answer</option>
-                <option value="time_limit_exceeded">Time Limit Exceeded</option>
-                <option value="runtime_error">Runtime Error</option>
-                <option value="not_submitted">Not Submitted Yet</option>
-            </select>
-
-            <textarea
-                name="code"
-                placeholder="Paste your code here"
-                rows="12"
-                required
-            ></textarea>
-
-            <button type="submit">Submit for Review</button>
-        </form>
-    </div>
-    
-    {% if current_attempt %}
-    <hr>
-    <div class="attempts-history">
-        <div class="attempt-card">
-            <h3>Attempt #{{ current_attempt.attempt_number }} 
-                — {{ current_attempt.language }} 
-                — {{ current_attempt.platform_verdict or 'No verdict' }}
-            </h3>
-            <small>{{ current_attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</small>
-
-            {% if current_attempt.review %}
-            <div class="review-section">
-
-                <div class="review-summary">
-                    <p>{{ current_attempt.review.summary }}</p>
-                </div>
-
-                {% if current_attempt.review.correct %}
-                <div class="review-correct">
-                    <h4>✓ What you did right</h4>
-                    {% for item in current_attempt.review.correct %}
-                    <p class="correct-item">+ {{ item }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                {% if current_attempt.review.issues %}
-                <div class="review-issues">
-                    <h4>! Issues found</h4>
-                    {% for issue in current_attempt.review.issues %}
-                    <div class="issue-card">
-                        <p class="issue-title">{{ issue.title }}</p>
-                        <p class="issue-desc">{{ issue.description }}</p>
-                        <p class="issue-why"><strong>Why it matters:</strong> {{ issue.why_it_matters }}</p>
-                        <p class="issue-think"><strong>Think about:</strong> {{ issue.think_about }}</p>
+                    <div class="problem-description">
+                        {{ problem.description | safe }}
                     </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
 
-                <div class="review-complexity">
-                    <div class="complexity-box">
-                        <p class="complexity-label">TIME</p>
-                        <p class="complexity-value">{{ current_attempt.review.complexity_time }}</p>
+                    {% if problem.constraints %}
+
+                    <div class="mt-3">
+
+                        <p class="text-uppercase small fw-semibold text-body-secondary mb-2">
+                            Constraints
+                        </p>
+
+                        <ul class="mb-0">
+
+                            {% for constraint in problem.constraints %}
+                                <li>{{ constraint }}</li>
+                            {% endfor %}
+
+                        </ul>
+
                     </div>
-                    <div class="complexity-box">
-                        <p class="complexity-label">SPACE</p>
-                        <p class="complexity-value">{{ current_attempt.review.complexity_space }}</p>
-                    </div>
-                </div>
 
-                {% if current_attempt.review.think_about_this %}
-                <div class="think-about">
-                    <p class="think-label">THINK ABOUT THIS</p>
-                    <p>{{ current_attempt.review.think_about_this }}</p>
-                </div>
-                {% endif %}
-
-                {% if current_attempt.review.vs_previous and current_attempt.attempt_number > 1 %}
-                <div class="vs-previous">
-                    <h4>VS PREVIOUS ATTEMPT</h4>
-                    {% for item in current_attempt.review.vs_previous.improvements %}
-                    <p class="improvement">✓ {{ item }}</p>
-                    {% endfor %}
-                    {% for item in current_attempt.review.vs_previous.remaining_issues %}
-                    <p class="remaining">~ {{ item }}</p>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <div class="hints-section">
-                    <h4>PROGRESSIVE HINTS</h4>
-                    {% if current_attempt.review.hints %}
-                        {% for hint in current_attempt.review.hints %}
-                        <div class="hint-card {% if hint.level > session.hint_level_unlocked %}locked{% endif %}">
-                            <p class="hint-level">Hint {{ hint.level }} — {{ hint.type | title }}</p>
-                            {% if hint.level <= session.hint_level_unlocked %}
-                                <p>{{ hint.hint }}</p>
-                            {% else %}
-                                <form method="POST" action="{{ url_for('main.unlock_hint', session_id=session.id) }}">
-                                    <button type="submit">Reveal Hint {{ hint.level }}</button>
-                                </form>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
                     {% endif %}
+
                 </div>
 
-                
-                {% if request.args.get('show_solution') == '1' %}
-                <div class="solution-section">
-                    <h3>Solution</h3>
-                    <pre><code>{{ problem.solution[current_attempt.language] }}</code></pre>
-
-                    <div class="solution-explanation">
-                        <h4>Explanation</h4>
-                        <p style="white-space: pre-line;">{{ problem.solution_explanation }}</p>
-                    </div>
-                </div>
-                {% else %}
-                <div class="solution-section">
-                    <form method="POST" action="{{ url_for('main.reveal_solution', session_id=session.id) }}">
-                        <button type="submit" class="reveal-btn">Reveal Solution</button>
-                    </form>
-                </div>
-                {% endif %}
             </div>
+
+
+            <!-- Problem Solved -->
+            {% if has_accepted_attempt %}
+
+            <div
+                class="alert alert-success mb-3"
+                role="alert"
+            >
+
+                <h4 class="alert-heading h6">
+                    ✓ Problem solved
+                </h4>
+
+                <p class="mb-0">
+                    You have already submitted an accepted solution.
+                    You can still submit another attempt to explore a
+                    different approach.
+                </p>
+
+            </div>
+
             {% endif %}
 
-            {% if attempt_history %}
-            <section class="attempt-history">
-                <h2>Attempt History</h2>
 
-                <div class="attempt-history-table">
-                    <div class="history-row history-header">
-                        <span>Attempt</span>
-                        <span>Language</span>
-                        <span>Verdict</span>
-                        <span>Submitted</span>
-                        <span>Action</span>
+            <!-- Your Attempt -->
+            <div class="card">
+
+                <div class="card-body p-0">
+
+                    <!-- Editor Header -->
+                    <div class="border-bottom px-3 py-2">
+
+                        <div class="d-flex justify-content-between align-items-center">
+
+                            <span class="fw-semibold">
+                                Your Attempt
+                            </span>
+
+                            <select
+                                name="language"
+                                form="attempt-form"
+                                class="form-select form-select-sm"
+                                style="width: auto;"
+                                required
+                            >
+                                <option value="" disabled
+                                    {% if not current_attempt %}selected{% endif %}>
+                                    Select language
+                                </option>
+
+                                <option value="cpp"
+                                    {% if current_attempt and current_attempt.language == 'cpp' %}selected{% endif %}>
+                                    C++
+                                </option>
+
+                                <option value="python"
+                                    {% if current_attempt and current_attempt.language == 'python' %}selected{% endif %}>
+                                    Python
+                                </option>
+
+                                <option value="javascript"
+                                    {% if current_attempt and current_attempt.language == 'javascript' %}selected{% endif %}>
+                                    JavaScript
+                                </option>
+                            </select>
+
+                        </div>
+
                     </div>
 
-                    {% for attempt in attempt_history %}
-                    <div class="history-row">
-                        <span>#{{ attempt.attempt_number }}</span>
 
-                        <span>{{ attempt.language }}</span>
+                    <!-- Attempt Form -->
+                    <form
+                        id="attempt-form"
+                        method="POST"
+                        action="{{ url_for('main.submit_attempt', session_id=session.id) }}"
+                    >
 
-                        <span>
-                            {{ attempt.platform_verdict or 'Not available' }}
+                        <!-- Code -->
+                        <textarea
+                            name="code"
+                            class="form-control border-0 rounded-0"
+                            placeholder="Paste your code here..."
+                            rows="15"
+                            required
+                        ></textarea>
+
+
+                        <!-- Bottom Controls -->
+                        <div class="border-top p-3">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+
+                                <select
+                                    name="platform_verdict"
+                                    class="form-select form-select-sm"
+                                    style="width: auto;"
+                                    required
+                                >
+                                    <option value="" disabled
+                                        {% if not current_attempt %}selected{% endif %}>
+                                        What was your result?
+                                    </option>
+
+                                    <option value="accepted"
+                                        {% if current_attempt and current_attempt.platform_verdict == 'accepted' %}selected{% endif %}>
+                                        Accepted ✓
+                                    </option>
+
+                                    <option value="wrong_answer"
+                                        {% if current_attempt and current_attempt.platform_verdict == 'wrong_answer' %}selected{% endif %}>
+                                        Wrong Answer
+                                    </option>
+
+                                    <option value="time_limit_exceeded"
+                                        {% if current_attempt and current_attempt.platform_verdict == 'time_limit_exceeded' %}selected{% endif %}>
+                                        Time Limit Exceeded
+                                    </option>
+
+                                    <option value="runtime_error"
+                                        {% if current_attempt and current_attempt.platform_verdict == 'runtime_error' %}selected{% endif %}>
+                                        Runtime Error
+                                    </option>
+
+                                    <option value="not_submitted"
+                                        {% if current_attempt and current_attempt.platform_verdict == 'not_submitted' %}selected{% endif %}>
+                                        Not Submitted Yet
+                                    </option>
+                                </select>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary"
+                                >
+                                    Submit for Review
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT: AI REVIEW -->
+        <div class="col-lg-5">
+
+            {% if current_attempt %}
+
+            <div class="card">
+
+                <!-- Review Header -->
+                <div class="card-header">
+
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+
+                        <h2 class="h5 mb-0">
+                            AI Review — Attempt #{{ current_attempt.attempt_number }}
+                        </h2>
+
+                        <span class="badge text-bg-secondary">
+                            {{ current_attempt.platform_verdict or 'No verdict' }}
                         </span>
 
-                        <span>
-                            {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
-                        </span>
+                    </div>
 
-                        <span>
-                            {% if attempt.review %}
+                    <small class="text-body-secondary">
+                        {{ current_attempt.language }}
+                        ·
+                        {{ current_attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+                    </small>
+
+                </div>
+
+
+                {% if current_attempt.review %}
+
+                <div class="card-body">
+
+                    <!-- Summary -->
+                    <div class="mb-4">
+
+                        <h3 class="h6">
+                            Summary
+                        </h3>
+
+                        <div class="alert alert-light border mb-0">
+                            {{ current_attempt.review.summary }}
+                        </div>
+
+                    </div>
+
+
+                    <!-- What You Did Right -->
+                    {% if current_attempt.review.correct %}
+
+                    <div class="mb-4">
+
+                        <h3 class="h6 text-success">
+                            ✓ What You Did Right
+                        </h3>
+
+                        {% for item in current_attempt.review.correct %}
+
+                        <div class="card border-success mb-2">
+
+                            <div class="card-body py-2">
+                                + {{ item }}
+                            </div>
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- Issues -->
+                    {% if current_attempt.review.issues %}
+
+                    <div class="mb-4">
+
+                        <h3 class="h6 text-danger">
+                            ! Issues Found
+                        </h3>
+
+                        {% for issue in current_attempt.review.issues %}
+
+                        <div class="card border-warning mb-3">
+
+                            <div class="card-body">
+
+                                <h4 class="h6">
+                                    {{ issue.title }}
+                                </h4>
+
+                                <p>
+                                    {{ issue.description }}
+                                </p>
+
+                                <p>
+                                    <strong>Why it matters:</strong>
+                                    {{ issue.why_it_matters }}
+                                </p>
+
+                                <p class="mb-0">
+                                    <strong>Think about:</strong>
+                                    {{ issue.think_about }}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- Complexity -->
+                    <div class="mb-4">
+
+                        <h3 class="h6">
+                            Complexity
+                        </h3>
+
+                        <div class="row g-3">
+
+                            <div class="col-6">
+
+                                <div class="card text-center h-100">
+
+                                    <div class="card-body">
+
+                                        <small class="text-body-secondary">
+                                            TIME
+                                        </small>
+
+                                        <div class="fs-5 fw-semibold">
+                                            {{ current_attempt.review.complexity_time }}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="col-6">
+
+                                <div class="card text-center h-100">
+
+                                    <div class="card-body">
+
+                                        <small class="text-body-secondary">
+                                            SPACE
+                                        </small>
+
+                                        <div class="fs-5 fw-semibold">
+                                            {{ current_attempt.review.complexity_space }}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Think About This -->
+                    {% if current_attempt.review.think_about_this %}
+
+                    <div class="alert alert-info mb-4">
+
+                        <h3 class="h6">
+                            THINK ABOUT THIS
+                        </h3>
+
+                        <p class="mb-0">
+                            {{ current_attempt.review.think_about_this }}
+                        </p>
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- VS Previous Attempt -->
+                    {% if current_attempt.review.vs_previous and current_attempt.attempt_number > 1 %}
+
+                    <div class="mb-4">
+
+                        <h3 class="h6">
+                            VS PREVIOUS ATTEMPT
+                        </h3>
+
+                        {% for item in current_attempt.review.vs_previous.improvements %}
+
+                        <div class="alert alert-success py-2">
+                            ✓ {{ item }}
+                        </div>
+
+                        {% endfor %}
+
+                        {% for item in current_attempt.review.vs_previous.remaining_issues %}
+
+                        <div class="alert alert-secondary py-2">
+                            ~ {{ item }}
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                    {% endif %}
+
+
+                    <!-- Progressive Hints -->
+                    <div class="mb-4">
+
+                        <h3 class="h6">
+                            PROGRESSIVE HINTS
+                        </h3>
+
+                        {% if current_attempt.review.hints %}
+
+                            {% for hint in current_attempt.review.hints %}
+
+                            <div class="card mb-3">
+
+                                <div class="card-body">
+
+                                    <h4 class="h6">
+                                        Hint {{ hint.level }}
+                                        —
+                                        {{ hint.type | title }}
+                                    </h4>
+
+                                    {% if hint.level <= session.hint_level_unlocked %}
+
+                                        <p class="mb-0">
+                                            {{ hint.hint }}
+                                        </p>
+
+                                    {% else %}
+
+                                        <form
+                                            method="POST"
+                                            action="{{ url_for('main.unlock_hint', session_id=session.id) }}"
+                                        >
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-outline-primary btn-sm"
+                                            >
+                                                Reveal Hint {{ hint.level }}
+                                            </button>
+
+                                        </form>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <!-- Solution -->
+                    {% if request.args.get('show_solution') == '1' %}
+
+                    <div class="card border-primary mb-4">
+
+                        <div class="card-header">
+
+                            <h3 class="h6 mb-0">
+                                Solution
+                            </h3>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <pre class="bg-dark text-light p-3 rounded overflow-auto"><code>{{ problem.solution[current_attempt.language] }}</code></pre>
+
+                            <h4 class="h6 mt-4">
+                                Explanation
+                            </h4>
+
+                            <p style="white-space: pre-line;">
+                                {{ problem.solution_explanation }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="text-center">
+
+                        <form
+                            method="POST"
+                            action="{{ url_for('main.reveal_solution', session_id=session.id) }}"
+                        >
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary"
+                            >
+                                Reveal Solution
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+            {% else %}
+
+            <div class="card">
+
+                <div class="card-body text-center py-5">
+
+                    <h3 class="h5">
+                        No attempt submitted yet
+                    </h3>
+
+                    <p class="text-body-secondary mb-0">
+                        Submit your solution to receive an AI review.
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Attempt History -->
+    {% if attempt_history %}
+
+    <div class="card mt-4">
+
+        <div class="card-header">
+
+            <h2 class="h5 mb-0">
+                Attempt History
+            </h2>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead>
+
+                        <tr>
+                            <th>Attempt</th>
+                            <th>Language</th>
+                            <th>Verdict</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for attempt in attempt_history %}
+
+                        <tr>
+
+                            <td>
+                                #{{ attempt.attempt_number }}
+                            </td>
+
+                            <td>
+                                {{ attempt.language }}
+                            </td>
+
+                            <td>
+                                {{ attempt.platform_verdict or 'Not available' }}
+                            </td>
+
+                            <td>
+                                {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+                            </td>
+
+                            <td>
+
+                                {% if attempt.review %}
+
                                 <a
                                     href="{{ url_for(
-                                    'main.attempt_review',
-                                    session_id=session.id,
-                                    attempt_number=attempt.attempt_number
+                                        'main.attempt_review',
+                                        session_id=session.id,
+                                        attempt_number=attempt.attempt_number
                                     ) }}"
                                     target="_blank"
+                                    class="btn btn-sm btn-outline-primary"
                                 >
                                     View review
                                 </a>
-                            {% else %}
-                                Review unavailable
-                            {% endif %}
-                        </span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </section>
-            {% endif %}
+
+                                {% else %}
+
+                                <span class="text-body-secondary">
+                                    Review unavailable
+                                </span>
+
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
         </div>
+
     </div>
+
     {% endif %}
 
 </div>
+
 {% endblock %}
