@@ -3,82 +3,162 @@
 {% block title %}Start Session — CodeHelp{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h1>Start a Problem Session</h1>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
 
-    <form method="POST">
-        <select name="platform" id="platform" required onchange="updateProblemInput()">
-            <option value="" disabled selected>Select platform</option>
-            <option value="leetcode">LeetCode</option>
-            <option value="codeforces">Codeforces</option>
-            <option value="gfg">GeeksforGeeks</option>
-        </select>
+                    <h1 class="h3 mb-4">Start a Problem Session</h1>
 
-        <div id="leetcode-input" style="display:none;">
-            <input
-                type="text"
-                name="lc_identifier"
-                id="lc_identifier"
-                placeholder="Problem number (e.g. 1) or slug (e.g. two-sum)"
-            />
-        </div>
+                    <form method="POST">
+                        <select 
+                            name="platform" 
+                            id="platform" 
+                            class="form-select mb-3"
+                            required 
+                            onchange="updateProblemInput()"
+                        >
+                            <option value="" disabled selected>Select platform</option>
+                            <option value="leetcode">LeetCode</option>
+                            <option value="codeforces">Codeforces</option>
+                            <option value="gfg">GeeksforGeeks</option>
+                        </select>
 
-        <div id="slug-input" style="display:none;">
-            <input
-                type="text"
-                name="title_slug"
-                id="title_slug"
-                placeholder="Problem slug"
-            />
-            <span class="tooltip-wrapper">
-                ℹ️
-                <span class="tooltip-text">
-                    The slug is the last part of the problem URL.
-                    For example: codeforces.com/problems/<strong>two-sum</strong>
-                </span>
-            </span>
+                        <div id="leetcode-input" style="display:none;" class="mb-3">
+                            <input
+                                type="text"
+                                name="lc_identifier"
+                                id="lc_identifier"
+                                class="form-control"
+                                placeholder="Problem number (e.g. 1) or slug (e.g. two-sum)"
+                            />
+                        </div>
 
-            <input
-                type="text"
-                name="problem_title"
-                id="problem_title"
-                placeholder="Problem title"
-            />
+                        <div id="slug-input" style="display:none;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <input
+                                    type="text"
+                                    name="title_slug"
+                                    id="title_slug"
+                                    class="form-control"
+                                    placeholder="Problem slug"
+                                />
 
-            <textarea 
-                name="problem_statement"
-                id="problem_statement"
-                placeholder="Paste the full problem statement here"
-                rows="5"
-            ></textarea>
+                                <span
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    title="The slug is the last part of the problem URL. For example: codeforces.com/problems/two-sum"
+                     
+                                    >
+                                    ℹ️
+                                </span>
+                            </div>
 
-            <textarea 
-                name="examples"
-                id="examples"
-                placeholder="Past examples here"
-                rows="4"
-            ></textarea>
+                            <input
+                                type="text"
+                                name="problem_title"
+                                id="problem_title"
+                                class="form-control mb-2"
+                                placeholder="Problem title"
+                            />
 
-            <div id="constraints-container">
-                <div class="constraint-row">
-                    <input
-                        type="text"
-                        name="constraints"
-                        placeholder="Enter a constraint"
-                    />
-                    <button type="button" onclick="removeConstraint(this)">
-                        Remove
-                    </button>
-                </div>    
+                            <textarea 
+                                name="problem_statement"
+                                id="problem_statement"
+                                class="form-control mb-3"
+                                placeholder="Paste the full problem statement here"
+                                rows="5"
+                            ></textarea>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Examples <span class="text-body-secondary">(optional)</span>
+                                </label>
+
+                                <div id="examples-container">
+                                    <div class="example-row border rounded p-3 mb-2">
+                                        <div class="mb-2">
+                                            <label class="form-label">Input</label>
+                                            <textarea
+                                                name="example_input"
+                                                class="form-control"
+                                                rows="1"
+                                                placeholder="Enter example input"
+                                            ></textarea>
+                                        </div>
+
+                                        <div class="mb-2">
+                                            <label class="form-label">Output</label>
+                                            <textarea
+                                                name="example_output"
+                                                class="form-control"
+                                                rows="1"
+                                                placeholder="Enter example output"
+                                            ></textarea>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-danger btn-sm"
+                                            onclick="removeExample(this)"
+                                        >
+                                            Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                onclick="addExample()"
+                            >
+                                + Add Example
+                            </button>
+                        </div>
+            
+                        <label class="form-label mb-2">
+                            Constraints
+                        </label>
+
+                            <div id="constraints-container">
+                                <div class="constraint-row d-flex gap-2 mb-2">
+                                    <input
+                                        type="text"
+                                        name="constraints"
+                                        class="form-control"
+                                        placeholder="Enter a constraint"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-outline-danger btn-sm"
+                                        onclick="removeConstraint(this)"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>    
+                            </div>
+
+                            <button 
+                                type="button" 
+                                class="btn btn-outline-secondary btn-sm mb-3"
+                                onclick="addConstraint()"
+                            >
+                                + Add constraint
+                            </button>
+                        </div>
+
+                        <button 
+                            type="submit"
+                            class="btn btn-primary w-100"
+                        >
+                            Start Session
+                        </button>
+                    </form>
+                </div>
             </div>
-
-            <button type="button" onclick="addConstraint()">
-                + Add constraint
-            </button>
         </div>
-
-        <button type="submit">Start Session</button>
-    </form>
+    </div>
 </div>
 
 <script>
@@ -108,15 +188,17 @@ function updateProblemInput() {
 function addConstraint() {
     const container = document.getElementById('constraints-container');
     const row = document.createElement('div');
-    row.className = 'constraint-row';
+    row.className = 'constraint-row d-flex gap-2 mb-2';
 
     const input = document.createElement('input');
     input.type = 'text';
     input.name = 'constraints';
+    input.className = 'form-control';
     input.placeholder = 'Enter a constraint';
 
     const removeButton = document.createElement('button');
     removeButton.type = 'button';
+    removeButton.className = 'btn btn-outline-danger btn-sm';
     removeButton.textContent = 'Remove';
     removeButton.onclick = function () {
         removeConstraint(this);
@@ -132,5 +214,55 @@ function removeConstraint(button) {
     const row = button.parentElement;
     row.remove();
 }
+
+function addExample() {
+    const container = document.getElementById('examples-container');
+
+    const row = document.createElement('div');
+    row.className = 'example-row border rounded p-3 mb-2';
+
+    row.innerHTML = `
+        <div class="mb-2">
+            <label class="form-label">Input</label>
+            <textarea
+                name="example_input"
+                class="form-control"
+                rows="2"
+                placeholder="Enter example input"
+            ></textarea>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Output</label>
+            <textarea
+                name="example_output"
+                class="form-control"
+                rows="2"
+                placeholder="Enter example output"
+            ></textarea>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            onclick="removeExample(this)"
+        >
+            Remove
+        </button>
+    `;
+
+    container.appendChild(row);
+}
+
+function removeExample(button) {
+    const row = button.parentElement;
+    row.remove();
+}
+
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+[...tooltipTriggerList].map(
+    tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl)
+);
+
 </script>
 {% endblock %}

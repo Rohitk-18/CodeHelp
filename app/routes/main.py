@@ -136,7 +136,20 @@ def start_session():
             title_slug = request.form.get('title_slug', '').strip()
             problem_title = request.form.get('problem_title', '').strip() or title_slug
             problem_description = request.form.get('problem_statement', '').strip()
-            examples_text = request.form.get('examples', '').strip()
+            examples = []
+
+            example_inputs = request.form.getlist('example_input')
+            example_outputs = request.form.getlist('example_output')
+
+            for example_input, example_output in zip(example_inputs, example_outputs):
+                example_input = example_input.strip()
+                example_output = example_output.strip()
+
+                if example_input or example_output:
+                    examples.append({
+                        'input': example_input,
+                        'output': example_output
+                    })
             constraints = [
                 constraints.strip()
                 for constraints in request.form.getlist('constraints')
@@ -163,7 +176,7 @@ def start_session():
                     title=problem_title,
                     title_slug=title_slug,
                     description=problem_description,
-                    examples=examples_text,
+                    examples=examples,
                     constraints=constraints,
                     difficulty='Unknown',
                     tags=[]
