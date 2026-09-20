@@ -1,161 +1,246 @@
 {% extends "base.html" %}
 
+{% block title %}Attempt #{{ attempt.attempt_number }} Review — CodeHelp{% endblock %}
+
 {% block content %}
 
-<div class="attempt-review-page">
+<div class="container-fluid py-4 attempt-review-page">
 
-    <div class="page-header">
-        <h1>Attempt #{{ attempt.attempt_number }} Review</h1>
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-1">
+            Attempt #{{ attempt.attempt_number }} Review
+        </h1>
+
+        <p class="text-body-secondary mb-0">
+            {{ problem.title }}
+        </p>
     </div>
 
+    <!-- Two-column layout -->
+    <div class="row g-4">
+        <!-- LEFT SIDE — PROBLEM + USER ATTEMPT -->
+        <div class="col-12 col-lg-6 overflow-auto" style="max-height: calc(100vh - 150px);">
 
-    <!-- Problem -->
-    <section class="problem-section">
+            <!-- Problem -->
+            <div class="card mb-4">
+                <div class="card-header position-sticky top-0 bg-body z-3">
+                    <h2 class="h5 mb-0">Problem</h2>
+                </div>
 
-        <h3>{{ problem.title }}</h3>
+                <div class="card-body">
+                    <h3 class="h5">
+                        {{ problem.title }}
+                    </h3>
 
-        <div class="problem-description">
-            {{ problem.description | safe }}
+                    <div>
+                        {{ problem.description | safe }}
+                    </div>
+
+                    {% if problem.constraints %}
+                    <div class="mt-4">
+                        <h3 class="h6">
+                            Constraints
+                        </h3>
+
+                        <ul class="mb-0">
+                            {% for constraint in problem.constraints %}
+                                <li>{{ constraint }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+
+            <!-- Attempt Information -->
+            <div class="card mb-4">
+                <div class="card-header position-sticky top-0 bg-body z-3">
+                    <h2 class="h5 mb-0">
+                        Attempt Information
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <small class="text-body-secondary d-block">
+                                ATTEMPT
+                            </small>
+
+                            <span class="fw-semibold">
+                                #{{ attempt.attempt_number }}
+                            </span>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-body-secondary d-block">
+                                LANGUAGE
+                            </small>
+
+                            <span class="fw-semibold text-uppercase">
+                                {{ attempt.language }}
+                            </span>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-body-secondary d-block">
+                                VERDICT
+                            </small>
+
+                            <span class="badge text-bg-secondary">
+                                {{ attempt.platform_verdict or 'Not available' }}
+                            </span>
+                        </div>
+
+                        <div class="col-6">
+                            <small class="text-body-secondary d-block">
+                                SUBMITTED
+                            </small>
+
+                            <span class="fw-semibold">
+                                {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Code -->
+            <div class="card mb-4">
+                <div class="card-header position-sticky top-0 bg-body z-3">
+                    <h2 class="h5 mb-0">
+                        Your Code
+                    </h2>
+                </div>
+
+                <div class="card-body">
+                    <pre class="bg-dark text-light p-3 rounded overflow-auto mb-0"><code>{{ attempt.code }}</code></pre>
+                </div>
+            </div>
         </div>
 
-        {% if problem.constraints %}
-        <div class="problem-constraints">
-            <h3>Constraints</h3>
+        <!-- RIGHT SIDE — AI REVIEW -->
+        <div class="col-12 col-lg-6 overflow-auto" style="max-height: calc(100vh - 150px);">
+            <div class="card">
+                <div class="card-header position-sticky top-0 bg-body z-3">
+                    <h2 class="h5 mb-0">
+                        AI Review
+                    </h2>
+                </div>
 
-            <ul>
-                {% for constraint in problem.constraints %}
-                    <li>{{ constraint }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+                <div class="card-body">
+                    <!-- Summary -->
+                    {% if review.summary %}
+                    <div class="mb-4">
+                        <h3 class="h6">
+                            Summary
+                        </h3>
 
-    </section>
+                        <div class="alert alert-light border mb-0">
+                            {{ review.summary }}
+                        </div>
+                    </div>
 
-
-    <!-- Attempt Information -->
-    <section class="attempt-meta">
-        <p>
-            <strong>Attempt:</strong>
-            #{{ attempt.attempt_number }}
-        </p>
-
-        <p>
-            <strong>Language:</strong>
-            {{ attempt.language }}
-        </p>
-
-        <p>
-            <strong>Verdict:</strong>
-            {{ attempt.platform_verdict or 'Not available' }}
-        </p>
-
-        <p>
-            <strong>Submitted:</strong>
-            {{ attempt.submitted_at.strftime('%d %b %Y, %I:%M %p') }}
-        </p>
-
-    </section>
-
-
-    <!-- User Code -->
-    <section class="attempt-code">
-
-        <h2>Your Code</h2>
-
-        <pre><code>{{ attempt.code }}</code></pre>
-
-    </section>
-
-
-    <!-- AI Review -->
-    <section class="ai-review">
-
-        <h2>AI Review</h2>
-
-
-        <!-- Summary -->
-        {% if review.summary %}
-        <div class="review-section">
-
-            <h3>Summary</h3>
-
-            <p>
-                {{ review.summary }}
-            </p>
-
-        </div>
-        {% endif %}
-
-
-        <!-- What You Did Well -->
-        {% if review.correct %}
-        <div class="review-section">
-
-            <h3>What You Did Well</h3>
-
-            <ul>
-                {% for item in review.correct %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-
-        </div>
-        {% endif %}
-
-
-        <!-- Issues -->
-        {% if review.issues %}
-        <div class="review-section">
-
-            <h3>Issues</h3>
-            <ul>
-                {% for issue in review.issues %}
-                <li>
-
-                    {% if issue.title %}
-                    <h4>{{ issue.title }}</h4>
                     {% endif %}
 
-                    {% if issue.description %}
-                    {{ issue.description }}
+                    <!-- What You Did Well -->
+                    {% if review.correct %}
+                    <div class="mb-4">
+                        <h3 class="h6 text-success">
+                            What You Did Well
+                        </h3>
+
+                        <ul class="list-group">
+                            {% for item in review.correct %}
+                            <li class="list-group-item">
+                                {{ item }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
 
-                    {% if issue.why_it_matters %}
-                    <br>
-                    {{ issue.why_it_matters }}
+                    <!-- Issues -->
+                    {% if review.issues %}
+                    <div class="mb-4">
+                        <h3 class="h6 text-danger">
+                            Issues
+                        </h3>
+
+                        <div class="list-group">
+                            {% for issue in review.issues %}
+                            <div class="list-group-item">
+                                {% if issue.title %}
+                                <h4 class="h6 mb-2">
+                                    {{ issue.title }}
+                                </h4>
+                                {% endif %}
+
+                                {% if issue.description %}
+                                <p class="mb-2">
+                                    {{ issue.description }}
+                                </p>
+                                {% endif %}
+
+                                {% if issue.why_it_matters %}
+                                <p class="mb-0">
+                                    <strong>Why it matters:</strong>
+                                    {{ issue.why_it_matters }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                     {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
+
+                    <!-- Complexity -->
+                    {% if review.complexity_time or review.complexity_space %}
+                    <div>
+                        <h3 class="h6">
+                            Complexity
+                        </h3>
+
+                        <div class="row g-3">
+                            {% if review.complexity_time %}
+                            <div class="col-6">
+                                <div class="card text-center h-100">
+                                    <div class="card-body">
+                                        <small class="text-body-secondary d-block">
+                                            TIME
+                                        </small>
+
+                                        <div class="fs-5 fw-semibold">
+                                            {{ review.complexity_time }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if review.complexity_space %}
+                            <div class="col-6">
+                                <div class="card text-center h-100">
+                                    <div class="card-body">
+                                        <small class="text-body-secondary d-block">
+                                            SPACE
+                                        </small>
+
+                                        <div class="fs-5 fw-semibold">
+                                            {{ review.complexity_space }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        {% endif %}
-
-
-        <!-- Complexity -->
-        {% if review.complexity_time or review.complexity_space %}
-        <div class="review-section">
-
-            <h3>Complexity</h3>
-
-            {% if review.complexity_time %}
-            <p>
-                <strong>Time:</strong>
-                {{ review.complexity_time }}
-            </p>
-            {% endif %}
-
-            {% if review.complexity_space %}
-            <p>
-                <strong>Space:</strong>
-                {{ review.complexity_space }}
-            </p>
-            {% endif %}
-
-        </div>
-        {% endif %}
-    </section>
-
+    </div>
 </div>
-
 {% endblock %}
