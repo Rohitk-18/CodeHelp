@@ -178,7 +178,7 @@ def start_session():
                     description=problem_description,
                     examples=examples,
                     constraints=constraints,
-                    difficulty='Unknown',
+                    difficulty=request.form.get('difficulty'),
                     tags=[]
                 )
                 db.session.add(problem)

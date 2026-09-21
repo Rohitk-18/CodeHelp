@@ -2,6 +2,94 @@ body {
     padding-top: 70px;
 }
 
+/* CodeHelp theme */
+:root {
+    --bs-primary: #198754;
+    --bs-primary-rgb: 25, 135, 84;
+
+    --bs-link-color: #198754;
+    --bs-link-color-rgb: 25, 135, 84;
+
+    --bs-link-hover-color: #146c43;
+    --bs-link-hover-color-rgb: 20, 108, 67;
+}
+
+/* Primary buttons and controls */
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #198754;
+    --bs-btn-border-color: #198754;
+
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #146c43;
+    --bs-btn-hover-border-color: #13653f;
+
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #13653f;
+    --bs-btn-active-border-color: #125f3b;
+
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #198754;
+    --bs-btn-disabled-border-color: #198754;
+}
+
+/* Outline primary */
+.btn-outline-primary {
+    --bs-btn-color: #198754;
+    --bs-btn-border-color: #198754;
+
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #198754;
+    --bs-btn-hover-border-color: #198754;
+
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #146c43;
+    --bs-btn-active-border-color: #146c43;
+}
+
+/* Dark mode */
+[data-bs-theme="dark"] {
+    --bs-primary: #3ddc84;
+    --bs-primary-rgb: 61, 220, 132;
+
+    --bs-link-color: #3ddc84;
+    --bs-link-color-rgb: 61, 220, 132;
+
+    --bs-link-hover-color: #75e9a7;
+    --bs-link-hover-color-rgb: 117, 233, 167;
+}
+
+/* Primary buttons — dark mode */
+[data-bs-theme="dark"] .btn-primary {
+    --bs-btn-color: #08130d;
+    --bs-btn-bg: #3ddc84;
+    --bs-btn-border-color: #3ddc84;
+
+    --bs-btn-hover-color: #08130d;
+    --bs-btn-hover-bg: #75e9a7;
+    --bs-btn-hover-border-color: #75e9a7;
+
+    --bs-btn-active-color: #08130d;
+    --bs-btn-active-bg: #75e9a7;
+    --bs-btn-active-border-color: #75e9a7;
+}
+
+/* Outline primary — dark mode */
+[data-bs-theme="dark"] .btn-outline-primary {
+    --bs-btn-color: #3ddc84;
+    --bs-btn-border-color: #3ddc84;
+
+    --bs-btn-hover-color: #08130d;
+    --bs-btn-hover-bg: #3ddc84;
+    --bs-btn-hover-border-color: #3ddc84;
+
+    --bs-btn-active-color: #08130d;
+    --bs-btn-active-bg: #75e9a7;
+    --bs-btn-active-border-color: #75e9a7;
+}
+
+
+/* Attempt Review — mobile layout */
 @media (max-width: 991.98px) {
     .attempt-review-page .overflow-auto {
         max-height: none !important;

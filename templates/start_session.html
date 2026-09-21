@@ -63,6 +63,22 @@
                                 placeholder="Problem title"
                             />
 
+                            <div class="mb-3">
+                                <label for="difficulty" class="form-label">Difficulty</label>
+
+                                <select
+                                    name="difficulty"
+                                    id="difficulty"
+                                    class="form-select"
+                                    required
+                                >
+                                    <option value="" selected disabled>Select difficulty</option>
+                                    <option value="Easy">Easy</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Hard">Hard</option>
+                                </select>
+                            </div>
+
                             <textarea 
                                 name="problem_statement"
                                 id="problem_statement"
@@ -227,7 +243,7 @@ function addExample() {
             <textarea
                 name="example_input"
                 class="form-control"
-                rows="2"
+                rows="1"
                 placeholder="Enter example input"
             ></textarea>
         </div>
@@ -237,7 +253,7 @@ function addExample() {
             <textarea
                 name="example_output"
                 class="form-control"
-                rows="2"
+                rows="1"
                 placeholder="Enter example output"
             ></textarea>
         </div>
