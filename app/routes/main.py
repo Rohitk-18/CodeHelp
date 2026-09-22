@@ -5,6 +5,8 @@ from app.services.leetcode import get_user_stats, get_problem
 from app.ai.reviewer import review_attempt
 from app.ai.solution import generate_solution
 from datetime import datetime, timezone
+import re
+
 main = Blueprint('main', __name__)
 
 @main.route('/')
@@ -226,12 +228,50 @@ def session(session_id):
                             platform_verdict='accepted'
                             ).first() is not None
 
+    solution_time_complexity = None
+    solution_space_complexity = None
+    solution_explanation_display = None
+
+    if problem_session.solution_revealed and problem_session.problem.solution_explanation:
+        explanation = problem_session.problem.solution_explanation
+
+        explanation_lines = []
+
+        for line in explanation.splitlines():
+            stripped_line = line.strip()
+
+            time_match = re.search(
+                r'time complexity:\s*(O\([^)]*\))',
+                stripped_line,
+                re.IGNORECASE
+            )
+
+            space_match = re.search(
+                r'space complexity:\s*(O\([^)]*\))',
+                stripped_line,
+                re.IGNORECASE
+            )
+
+            if time_match:
+                solution_time_complexity = time_match.group(1).strip()
+
+            elif space_match:
+                solution_space_complexity = space_match.group(1).strip()
+
+            else:
+                explanation_lines.append(line)
+
+        solution_explanation_display = '\n'.join(explanation_lines).strip()
+
     return render_template('session.html', 
                          session=problem_session,
                          problem=problem_session.problem,
                          current_attempt=current_attempt,
                          has_accepted_attempt=has_accepted_attempt,
-                         attempt_history=attempt_history)
+                         attempt_history=attempt_history,
+                         solution_time_complexity=solution_time_complexity,
+                         solution_space_complexity=solution_space_complexity,
+                         solution_explanation_display=solution_explanation_display)
 
 
 @main.route('/session/<int:session_id>/submit', methods=['POST'])
@@ -336,38 +376,83 @@ def unlock_hint(session_id):
 @main.route('/session/<int:session_id>/reveal-solution', methods=['POST'])
 @login_required
 def reveal_solution(session_id):
-    problem_session = ProblemSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
+    problem_session = ProblemSession.query.filter_by(
+        id=session_id,
+        user_id=current_user.id
+    ).first_or_404()
 
     if problem_session.user_id != current_user.id:
         abort(403)
 
-    # Check eligibility
+    # If solution is already revealed, hide it
+    if problem_session.solution_revealed:
+        problem_session.solution_revealed = False
+        db.session.commit()
+
+        return redirect(url_for(
+            'main.session',
+            session_id=problem_session.id
+        ))
+
+    # Check eligibility before revealing
     attempt_count = Attempt.query.filter_by(
         session_id=problem_session.id
     ).count()
 
     minutes_elapsed = (
-        datetime.now(timezone.utc).replace(tzinfo=None) - problem_session.started_at
+        datetime.now(timezone.utc).replace(tzinfo=None)
+        - problem_session.started_at
     ).total_seconds() / 60
 
     if attempt_count < 2:
-        flash('You need at least 2 attempts before revealing the solution.', 'error')
-        return redirect(url_for('main.session', session_id=session_id))
+        flash(
+            'You need at least 2 attempts before revealing the solution.',
+            'error'
+        )
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
 
     if problem_session.hint_level_unlocked < 1:
-        flash('You need to unlock at least 1 hint before revealing the solution.', 'error')
-        return redirect(url_for('main.session', session_id=session_id))
+        flash(
+            'You need to unlock at least 1 hint before revealing the solution.',
+            'error'
+        )
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
 
     if minutes_elapsed < 10:
         remaining = int(10 - minutes_elapsed)
-        flash(f'Please spend at least 10 minutes on this problem. {remaining} minutes remaining.', 'error')
-        return redirect(url_for('main.session', session_id=session_id))
 
-    current_attempt = Attempt.query.filter_by(session_id=problem_session.id).order_by(Attempt.attempt_number.desc()).first()
+        flash(
+            f'Please spend at least 10 minutes on this problem. '
+            f'{remaining} minutes remaining.',
+            'error'
+        )
+
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
+
+    current_attempt = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).order_by(
+        Attempt.attempt_number.desc()
+    ).first()
 
     if not current_attempt:
-        flash('You need to submit an attempt before revealing the solution.', 'error')
-        return redirect(url_for('main.session', session_id=session_id))
+        flash(
+            'You need to submit an attempt before revealing the solution.',
+            'error'
+        )
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
 
     problem = problem_session.problem
     language = current_attempt.language
@@ -377,19 +462,33 @@ def reveal_solution(session_id):
 
     # Generate the solution for this language if it doesn't exist
     if language not in solutions:
-        solution_data = generate_solution(problem, language)
+        solution_data = generate_solution(
+            problem,
+            language
+        )
 
         solutions[language] = solution_data.get('solution')
         problem.solution = solutions
 
         if not problem.solution_explanation:
-            problem.solution_explanation = solution_data.get('solution_explanation')
+            problem.solution_explanation = solution_data.get(
+                'solution_explanation'
+            )
 
+    # Reveal solution
     problem_session.solution_revealed = True
+
     db.session.commit()
 
-    flash('Solution revealed. Study it carefully and understand why your approach differed.', 'success')
-    return redirect(url_for('main.session', session_id=problem_session.id, show_solution=1))
+    flash(
+        'Solution revealed. Study it carefully and understand why your approach differed.',
+        'success'
+    )
+
+    return redirect(url_for(
+        'main.session',
+        session_id=problem_session.id
+    ))
 
 
 @main.route('/session/<int:session_id>/attempt/<int:attempt_number>')
