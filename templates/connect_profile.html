@@ -3,25 +3,110 @@
 {% block title %}Connect Profile — CodeHelp{% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <h1>Connect Coding Profile</h1>
-    <p>Connect your profile from a supported platform.</p>
-    <form method="POST" action="{{ url_for('main.connect_profile') }}">
-        <div class="connect-row">
-            <select name="platform" required>
-                <option value="" disabled selected>Select platform</option>
-                <option value="leetcode">🟡 LeetCode</option>
-                <option value="codeforces">🔵 Codeforces</option>
-                <option value="gfg">🟢 GeeksforGeeks</option>
-            </select>
-            <input 
-                type="text" 
-                name="username" 
-                placeholder="Enter your username"
-                required
-            />
-            <button type="submit">Connect</button>
+
+<div class="container py-4">
+
+    <div class="row justify-content-center">
+
+        <div class="col-12 col-md-8 col-lg-6">
+
+            <div class="card">
+
+                <div class="card-body p-4">
+
+                    <!-- Header -->
+                    <div class="mb-4">
+                        <h1 class="h3 mb-2">
+                            Connect Coding Profile
+                        </h1>
+
+                        <p class="text-body-secondary mb-0">
+                            Connect your profile from a supported platform.
+                        </p>
+                    </div>
+
+                    <!-- Form -->
+                    <form
+                        method="POST"
+                        action="{{ url_for('main.connect_profile') }}"
+                    >
+
+                        <!-- Platform -->
+                        <div class="mb-3">
+                            <label
+                                for="platform"
+                                class="form-label"
+                            >
+                                Platform
+                            </label>
+
+                            <select
+                                name="platform"
+                                id="platform"
+                                class="form-select"
+                                required
+                            >
+                                <option
+                                    value=""
+                                    disabled
+                                    selected
+                                >
+                                    Select platform
+                                </option>
+
+                                <option value="leetcode">
+                                    🟡 LeetCode
+                                </option>
+
+                                <option value="codeforces">
+                                    🔵 Codeforces
+                                </option>
+
+                                <option value="gfg">
+                                    🟢 GeeksforGeeks
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label
+                                for="username"
+                                class="form-label"
+                            >
+                                Username
+                            </label>
+
+                            <input
+                                type="text"
+                                name="username"
+                                id="username"
+                                class="form-control"
+                                placeholder="Enter your username"
+                                required
+                            >
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid">
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Connect Profile
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
         </div>
-    </form>
+
+    </div>
+
 </div>
+
 {% endblock %}

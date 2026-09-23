@@ -62,7 +62,7 @@ def connect_profile():
             stats = get_user_stats(username)
             if not stats:
                 flash('LeetCode username not found. Please check and try again.', 'error')
-                return redirect(url_for('main.connect_leetcode'))
+                return redirect(url_for('main.connect_profile'))
 
         profile = CodingProfile(
             user_id=current_user.id,
