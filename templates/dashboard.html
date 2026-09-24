@@ -82,16 +82,6 @@
         {% else %}
             <p class="text-muted">No sessions yet.</p>
         {% endif %}
-
-    {% if profiles %}
-    <h2 class="fw-semibold mt-4 mb-3">Connected Profiles</h2>
-    {% for profile in profiles %}
-    <div class="card shadow-sm mb-2">
-        <div class="card-body py-2">
-            <p>{{ profile.platform | title }}</p>
-        </div>        
     </div>
-    {% endfor %}
-    {% endif %}
 </div>
 {% endblock %}

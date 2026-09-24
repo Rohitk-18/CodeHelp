@@ -90,9 +90,12 @@
                             <li class="nav-item">
                                 <a
                                     class="nav-link"
-                                    href="{{ url_for('main.connect_profile') }}"
+                                    href="#"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#profileStatsModal"
+                                    data-bs-dismiss="offcanvas"
                                 >
-                                    Coding Profile
+                                    Coding Profiles
                                 </a>
                             </li>
 
@@ -141,6 +144,212 @@
         </div>
         {% block content %}{% endblock %}
     </main>
+
+    {% if current_user.is_authenticated %}
+        <div
+            class="modal fade"
+            id="profileStatsModal"
+            tabindex="-1"
+            aria-labelledby="profileStatsModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+
+                        <div class="d-flex align-items-center gap-2">
+
+                            <button
+                                type="button"
+                                id="profileBackButton"
+                                class="btn btn-sm btn-outline-secondary d-none"
+                                aria-label="Back to coding profiles"
+                            >
+                                ←
+                            </button>
+
+                            <img
+                                id="profileStatsIcon"
+                                src=""
+                                alt=""
+                                width="24"
+                                height="24"
+                                class="d-none"
+                            >
+
+                            <h5 class="modal-title mb-0" id="profileStatsModalLabel">
+                                Coding Profiles
+                            </h5>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+
+                    </div>
+
+                    <div class="modal-body">
+                        <div id="profileList">
+                            {% if current_user.coding_profiles %}
+                                {% for profile in current_user.coding_profiles %}
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary w-100 text-start mb-2 profile-item d-flex align-items-center"
+                                    data-profile-id="{{ profile.id }}"
+                                    data-platform="{{ profile.platform }}"
+                                >
+                                    {% if profile.platform == 'leetcode' %}
+                                        <img
+                                            src="https://cdn.simpleicons.org/leetcode"
+                                            alt="LeetCode"
+                                            width="24"
+                                            height="24"
+                                            class="me-3"
+                                        >
+                                    {% elif profile.platform == 'codeforces' %}
+                                        <img
+                                            src="https://cdn.simpleicons.org/codeforces"
+                                            alt="Codeforces"
+                                            width="24"
+                                            height="24"
+                                            class="me-3"
+                                        >
+                                    {% elif profile.platform == 'gfg' %}
+                                        <img
+                                            src="https://cdn.simpleicons.org/geeksforgeeks"
+                                            alt="GeeksforGeeks"
+                                            width="24"
+                                            height="24"
+                                            class="me-3"
+                                        >
+                                    {% endif %}
+
+                                    <span>
+                                        <span class="fw-semibold">
+                                            {% if profile.platform == 'gfg' %}
+                                                GeeksforGeeks
+                                            {% else %}
+                                                {{ profile.platform.title() }}
+                                            {% endif %}
+                                        </span>
+
+                                        <span class="text-body-secondary">
+                                            — {{ profile.platform_username }}
+                                        </span>
+                                    </span>
+                                </button>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-body-secondary mb-0">
+                                    No coding profiles connected yet.
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <div id="profileStatsLoading" class="text-center d-none">
+                            <div
+                                class="spinner-border text-success"
+                                role="status"
+                            >
+                                <span class="visually-hidden">
+                                    Loading...
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="profileStatsError" class="alert alert-danger d-none">
+                        </div>
+
+                        <div id="profileStatsContent" class="d-none">
+                            <div class="text-center mb-3">
+                                <h5 id="statsUsername" class="mb-1"></h5>
+                                <div class="text-body-secondary">
+                                    Ranking:
+                                    <span id="statsRanking"></span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 text-center">
+                                <div class="col-6 col-md-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="text-body-secondary small">
+                                                Total
+                                            </div>
+                                            <div id="statsTotal" class="fs-4 fw-semibold">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="text-body-secondary small">
+                                                Easy
+                                            </div>
+                                            <div id="statsEasy" class="fs-4 fw-semibold">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="text-body-secondary small">
+                                                Medium
+                                            </div>
+                                            <div id="statsMedium" class="fs-4 fw-semibold">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <div class="text-body-secondary small">
+                                                Hard
+                                            </div>
+                                            <div id="statsHard" class="fs-4 fw-semibold">
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <a
+                            href="{{ url_for('main.connect_profile') }}"
+                            class="btn btn-success"
+                        >
+                            Connect Other Profile
+                        </a>
+
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         setTimeout(function () {
@@ -186,6 +395,154 @@
             localStorage.setItem('theme', newTheme);
 
             updateThemeIcon(newTheme);
+        });
+
+        const profileBackButton =
+            document.getElementById('profileBackButton');
+
+        document.querySelectorAll('.profile-item').forEach(function (profileItem) {
+
+            profileItem.addEventListener('click', function () {
+
+                const profileId = this.getAttribute('data-profile-id');
+                const platform = this.getAttribute('data-platform');
+
+                const profileList =
+                    document.getElementById('profileList');
+
+                const loading =
+                    document.getElementById('profileStatsLoading');
+
+                const error =
+                    document.getElementById('profileStatsError');
+
+                const content =
+                    document.getElementById('profileStatsContent');
+
+                const title =
+                    document.getElementById('profileStatsModalLabel');
+                
+                const profileStatsIcon =
+                    document.getElementById('profileStatsIcon');
+
+                profileList.classList.add('d-none');
+                loading.classList.remove('d-none');
+                error.classList.add('d-none');
+                content.classList.add('d-none');
+
+                profileBackButton.classList.remove('d-none');
+
+                if (platform === 'leetcode') {
+
+                    title.textContent = 'LeetCode Profile';
+
+                    profileStatsIcon.src =
+                        'https://cdn.simpleicons.org/leetcode';
+
+                    profileStatsIcon.alt = 'LeetCode';
+
+                    profileStatsIcon.classList.remove('d-none');
+
+                } else if (platform === 'codeforces') {
+
+                    title.textContent = 'Codeforces Profile';
+
+                    profileStatsIcon.src =
+                        'https://cdn.simpleicons.org/codeforces';
+
+                    profileStatsIcon.alt = 'Codeforces';
+
+                    profileStatsIcon.classList.remove('d-none');
+
+                } else if (platform === 'gfg') {
+
+                    title.textContent = 'GeeksforGeeks Profile';
+
+                    profileStatsIcon.src =
+                        'https://cdn.simpleicons.org/geeksforgeeks';
+
+                    profileStatsIcon.alt = 'GeeksforGeeks';
+
+                    profileStatsIcon.classList.remove('d-none');
+
+                }
+
+                fetch(`/coding-profile/${profileId}/stats`)
+                    .then(response => response.json())
+                    .then(data => {
+
+                        loading.classList.add('d-none');
+
+                        if (!data.success) {
+                            error.textContent =
+                                data.message || 'Unable to load profile stats.';
+
+                            error.classList.remove('d-none');
+                            return;
+                        }
+
+                        document.getElementById('statsUsername')
+                            .textContent = data.username;
+
+                        document.getElementById('statsTotal')
+                            .textContent = data.total;
+
+                        document.getElementById('statsEasy')
+                            .textContent = data.easy;
+
+                        document.getElementById('statsMedium')
+                            .textContent = data.medium;
+
+                        document.getElementById('statsHard')
+                            .textContent = data.hard;
+
+                        document.getElementById('statsRanking')
+                            .textContent = data.ranking ?? 'Not available';
+
+                        content.classList.remove('d-none');
+                    })
+                    .catch(() => {
+
+                        loading.classList.add('d-none');
+
+                        error.textContent =
+                            'Unable to connect to the profile service.';
+
+                        error.classList.remove('d-none');
+                    });
+            });
+
+        });
+
+
+        profileBackButton.addEventListener('click', function () {
+
+            const profileList =
+                document.getElementById('profileList');
+
+            const loading =
+                document.getElementById('profileStatsLoading');
+
+            const error =
+                document.getElementById('profileStatsError');
+
+            const content =
+                document.getElementById('profileStatsContent');
+
+            const title =
+                document.getElementById('profileStatsModalLabel');
+
+            profileList.classList.remove('d-none');
+            loading.classList.add('d-none');
+            error.classList.add('d-none');
+            content.classList.add('d-none');
+
+            profileBackButton.classList.add('d-none');
+
+            title.textContent = 'Coding Profiles';
+
+            profileStatsIcon.classList.add('d-none');
+            profileStatsIcon.src = '';
         });
 
     </script>

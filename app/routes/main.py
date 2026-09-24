@@ -77,6 +77,49 @@ def connect_profile():
 
     return render_template('connect_profile.html')
 
+@main.route('/coding-profile/<int:profile_id>/stats')
+@login_required
+def coding_profile_stats(profile_id):
+    profile = CodingProfile.query.filter_by(
+        id=profile_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    if profile.platform != 'leetcode':
+        return {
+            'success': False,
+            'message': 'Stats are not supported for this platform yet.'
+        }, 400
+
+    stats = get_user_stats(profile.platform_username)
+
+    if not stats:
+        return {
+            'success': False,
+            'message': 'Unable to fetch LeetCode profile stats.'
+        }, 404
+
+    difficulty_counts = {
+        item['difficulty']: item['count']
+        for item in stats.get('submitStats', {}).get(
+            'acSubmissionNum',
+            []
+        )
+    }
+
+    easy = difficulty_counts.get('Easy', 0)
+    medium = difficulty_counts.get('Medium', 0)
+    hard = difficulty_counts.get('Hard', 0)
+
+    return {
+        'success': True,
+        'username': stats.get('username'),
+        'ranking': stats.get('profile', {}).get('ranking'),
+        'easy': easy,
+        'medium': medium,
+        'hard': hard,
+        'total': easy + medium + hard
+    }
 
 @main.route('/start-session', methods=['GET', 'POST'])
 @login_required
