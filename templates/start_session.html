@@ -12,35 +12,18 @@
                     <h1 class="h3 mb-4">Start a Problem Session</h1>
 
                     <form method="POST">
-                        <div class="d-flex align-items-center gap-2 mb-3">
-                            <div
-                                id="platform-icon"
-                                class="d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;"
-                            >
-                                <img
-                                    id="platform-icon-image"
-                                    src=""
-                                    alt=""
-                                    width="28"
-                                    height="28"
-                                    class="d-none"
-                                >
-                            </div>
-
-                            <select 
-                                name="platform" 
-                                id="platform" 
-                                class="form-select"
-                                required 
-                                onchange="updateProblemInput()"
-                            >
-                                <option value="" disabled selected>Select platform</option>
-                                <option value="leetcode">LeetCode</option>
-                                <option value="codeforces">Codeforces</option>
-                                <option value="gfg">GeeksforGeeks</option>
-                            </select>
-                        </div>
+                        <select 
+                            name="platform" 
+                            id="platform" 
+                            class="form-select mb-3"
+                            required 
+                            onchange="updateProblemInput()"
+                        >
+                            <option value="" disabled selected>Select platform</option>
+                            <option value="leetcode">LeetCode</option>
+                            <option value="codeforces">Codeforces</option>
+                            <option value="gfg">GeeksforGeeks</option>
+                        </select>
 
                         <div id="leetcode-input" style="display:none;" class="mb-3">
                             <input
@@ -197,26 +180,6 @@
 <script>
 function updateProblemInput() {
     const platform = document.getElementById('platform').value;
-
-    const platformIcon =
-        document.getElementById('platform-icon-image');
-
-    const platformIcons = {
-        leetcode: 'https://cdn.simpleicons.org/leetcode',
-        codeforces: 'https://cdn.simpleicons.org/codeforces',
-        gfg: 'https://cdn.simpleicons.org/geeksforgeeks'
-    };
-
-    if (platformIcons[platform]) {
-        platformIcon.src = platformIcons[platform];
-        platformIcon.alt = platform;
-        platformIcon.classList.remove('d-none');
-    } else {
-        platformIcon.src = '';
-        platformIcon.alt = '';
-        platformIcon.classList.add('d-none');
-    }
-
     const lcInput = document.getElementById('leetcode-input');
     const slugInput = document.getElementById('slug-input');
     const lcIdentifier = document.getElementById('lc_identifier');

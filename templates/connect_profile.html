@@ -5,13 +5,9 @@
 {% block content %}
 
 <div class="container py-4">
-
     <div class="row justify-content-center">
-
         <div class="col-12 col-md-8 col-lg-6">
-
             <div class="card">
-
                 <div class="card-body p-4">
 
                     <!-- Header -->
@@ -29,43 +25,102 @@
                     <form
                         method="POST"
                         action="{{ url_for('main.connect_profile') }}"
+                        onsubmit="return validatePlatform()"
                     >
 
                         <!-- Platform -->
                         <div class="mb-3">
-                            <label
-                                for="platform"
-                                class="form-label"
-                            >
+                            <label class="form-label">
                                 Platform
                             </label>
 
-                            <select
+                            <input
+                                type="hidden"
                                 name="platform"
                                 id="platform"
-                                class="form-select"
-                                required
                             >
-                                <option
-                                    value=""
-                                    disabled
-                                    selected
+
+                            <div class="dropdown">
+                                <button
+                                    class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-between"
+                                    type="button"
+                                    id="platformDropdown"
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
                                 >
-                                    Select platform
-                                </option>
+                                    <span class="d-flex align-items-center gap-2">
+                                        <span
+                                            id="platformIcon"
+                                            class="d-none"
+                                        >
+                                            <img
+                                                id="platformIconImage"
+                                                src=""
+                                                alt=""
+                                                width="20"
+                                                height="20"
+                                            >
+                                        </span>
 
-                                <option value="leetcode">
-                                    🟡 LeetCode
-                                </option>
+                                        <span id="platformText">
+                                            Select platform
+                                        </span>
+                                    </span>
+                                </button>
 
-                                <option value="codeforces">
-                                    🔵 Codeforces
-                                </option>
+                                <ul
+                                    class="dropdown-menu w-100"
+                                    aria-labelledby="platformDropdown"
+                                >
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item d-flex align-items-center gap-2"
+                                            onclick="selectPlatform('leetcode', 'LeetCode', 'https://cdn.simpleicons.org/leetcode')"
+                                        >
+                                            <img
+                                                src="https://cdn.simpleicons.org/leetcode"
+                                                alt="LeetCode"
+                                                width="20"
+                                                height="20"
+                                            >
+                                                LeetCode
+                                        </button>
+                                    </li>
 
-                                <option value="gfg">
-                                    🟢 GeeksforGeeks
-                                </option>
-                            </select>
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item d-flex align-items-center gap-2"
+                                            onclick="selectPlatform('codeforces', 'Codeforces', 'https://cdn.simpleicons.org/codeforces')"
+                                        >
+                                            <img
+                                                src="https://cdn.simpleicons.org/codeforces"
+                                                alt="Codeforces"
+                                                width="20"
+                                                height="20"
+                                            >
+                                                Codeforces
+                                        </button>
+                                    </li>
+
+                                    <li>
+                                        <button
+                                            type="button"
+                                            class="dropdown-item d-flex align-items-center gap-2"
+                                            onclick="selectPlatform('gfg', 'GeeksforGeeks', 'https://cdn.simpleicons.org/geeksforgeeks')"
+                                        >
+                                            <img
+                                                src="https://cdn.simpleicons.org/geeksforgeeks"
+                                                alt="GeeksforGeeks"
+                                                width="20"
+                                                height="20"
+                                            >
+                                                GeeksforGeeks
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
 
                         <!-- Username -->
@@ -96,17 +151,37 @@
                                 Connect Profile
                             </button>
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
+
+<script>
+    function selectPlatform(value, name, iconUrl) {
+        document.getElementById('platform').value = value;
+
+        document.getElementById('platformText').textContent = name;
+
+        const icon = document.getElementById('platformIcon');
+        const iconImage = document.getElementById('platformIconImage');
+
+        iconImage.src = iconUrl;
+        iconImage.alt = name;
+        icon.classList.remove('d-none');
+    }
+
+    function validatePlatform() {
+        const platform = document.getElementById('platform').value;
+
+        if (!platform) {
+            alert('Please select a platform.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
 
 {% endblock %}
