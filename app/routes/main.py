@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from app.models import db, CodingProfile, Problem, ProblemSession, Attempt, Review
 from app.services.leetcode import get_user_stats, get_problem
+from app.services.codeforces import get_user_profile, get_codeforces_stats
 from app.ai.reviewer import review_attempt
 from app.ai.solution import generate_solution
 from datetime import datetime, timezone
@@ -64,6 +65,13 @@ def connect_profile():
                 flash('LeetCode username not found. Please check and try again.', 'error')
                 return redirect(url_for('main.connect_profile'))
 
+        elif platform == 'codeforces':
+            profile = get_user_profile(username)
+
+            if not profile:
+                flash('Codeforces username not found. Please check and try again.', 'error')
+                return redirect(url_for('main.connect_profile'))
+
         profile = CodingProfile(
             user_id=current_user.id,
             platform=platform,
@@ -85,41 +93,56 @@ def coding_profile_stats(profile_id):
         user_id=current_user.id
     ).first_or_404()
 
-    if profile.platform != 'leetcode':
+    if profile.platform == 'leetcode':
+        stats = get_user_stats(profile.platform_username)
+
+        if not stats:
+            return {
+                'success': False,
+                'message': 'Unable to fetch LeetCode profile stats.'
+            }, 404
+
+        difficulty_counts = {
+            item['difficulty']: item['count']
+            for item in stats.get('submitStats', {}).get(
+                'acSubmissionNum',
+                []
+            )
+        }
+
+        easy = difficulty_counts.get('Easy', 0)
+        medium = difficulty_counts.get('Medium', 0)
+        hard = difficulty_counts.get('Hard', 0)
+
         return {
-            'success': False,
-            'message': 'Stats are not supported for this platform yet.'
-        }, 400
+            'success': True,
+            'platform': 'leetcode',
+            'username': stats.get('username'),
+            'ranking': stats.get('profile', {}).get('ranking'),
+            'total': easy + medium + hard,
+            'easy': easy,
+            'medium': medium,
+            'hard': hard
+        }
 
-    stats = get_user_stats(profile.platform_username)
+    elif profile.platform == 'codeforces':
+        stats = get_codeforces_stats(profile.platform_username)
 
-    if not stats:
+        if not stats:
+            return {
+                'success': False,
+                'message': 'Unable to fetch Codeforces profile stats.'
+            }, 404
+
         return {
-            'success': False,
-            'message': 'Unable to fetch LeetCode profile stats.'
-        }, 404
-
-    difficulty_counts = {
-        item['difficulty']: item['count']
-        for item in stats.get('submitStats', {}).get(
-            'acSubmissionNum',
-            []
-        )
-    }
-
-    easy = difficulty_counts.get('Easy', 0)
-    medium = difficulty_counts.get('Medium', 0)
-    hard = difficulty_counts.get('Hard', 0)
-
-    return {
-        'success': True,
-        'username': stats.get('username'),
-        'ranking': stats.get('profile', {}).get('ranking'),
-        'easy': easy,
-        'medium': medium,
-        'hard': hard,
-        'total': easy + medium + hard
-    }
+            'success': True,
+            'platform': 'codeforces',
+            'username': stats.get('username'),
+            'rating': stats.get('rating'),
+            'rank': stats.get('rank'),
+            'max_rating': stats.get('max_rating'),
+            'max_rank': stats.get('max_rank')
+        }
 
 @main.route('/start-session', methods=['GET', 'POST'])
 @login_required

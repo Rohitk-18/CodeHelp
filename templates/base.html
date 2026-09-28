@@ -218,23 +218,11 @@
                                             height="24"
                                             class="me-3"
                                         >
-                                    {% elif profile.platform == 'gfg' %}
-                                        <img
-                                            src="https://cdn.simpleicons.org/geeksforgeeks"
-                                            alt="GeeksforGeeks"
-                                            width="24"
-                                            height="24"
-                                            class="me-3"
-                                        >
                                     {% endif %}
 
                                     <span>
                                         <span class="fw-semibold">
-                                            {% if profile.platform == 'gfg' %}
-                                                GeeksforGeeks
-                                            {% else %}
-                                                {{ profile.platform.title() }}
-                                            {% endif %}
+                                            {{ profile.platform.title() }}
                                         </span>
 
                                         <span class="text-body-secondary">
@@ -267,7 +255,7 @@
                         <div id="profileStatsContent" class="d-none">
                             <div class="text-center mb-3">
                                 <h5 id="statsUsername" class="mb-1"></h5>
-                                <div class="text-body-secondary">
+                                <div id="statsRankingSection" class="text-body-secondary">
                                     Ranking:
                                     <span id="statsRanking"></span>
                                 </div>
@@ -277,7 +265,7 @@
                                 <div class="col-6 col-md-3">
                                     <div class="card h-100">
                                         <div class="card-body">
-                                            <div class="text-body-secondary small">
+                                            <div id="statsLabel1" class="text-body-secondary small">
                                                 Total
                                             </div>
                                             <div id="statsTotal" class="fs-4 fw-semibold">
@@ -290,7 +278,7 @@
                                 <div class="col-6 col-md-3">
                                     <div class="card h-100">
                                         <div class="card-body">
-                                            <div class="text-body-secondary small">
+                                            <div id="statsLabel2" class="text-body-secondary small">
                                                 Easy
                                             </div>
                                             <div id="statsEasy" class="fs-4 fw-semibold">
@@ -303,7 +291,7 @@
                                 <div class="col-6 col-md-3">
                                     <div class="card h-100">
                                         <div class="card-body">
-                                            <div class="text-body-secondary small">
+                                            <div id="statsLabel3" class="text-body-secondary small">
                                                 Medium
                                             </div>
                                             <div id="statsMedium" class="fs-4 fw-semibold">
@@ -316,7 +304,7 @@
                                 <div class="col-6 col-md-3">
                                     <div class="card h-100">
                                         <div class="card-body">
-                                            <div class="text-body-secondary small">
+                                            <div id="statsLabel4" class="text-body-secondary small">
                                                 Hard
                                             </div>
                                             <div id="statsHard" class="fs-4 fw-semibold">
@@ -454,18 +442,7 @@
 
                     profileStatsIcon.classList.remove('d-none');
 
-                } else if (platform === 'gfg') {
-
-                    title.textContent = 'GeeksforGeeks Profile';
-
-                    profileStatsIcon.src =
-                        'https://cdn.simpleicons.org/geeksforgeeks';
-
-                    profileStatsIcon.alt = 'GeeksforGeeks';
-
-                    profileStatsIcon.classList.remove('d-none');
-
-                }
+                } 
 
                 fetch(`/coding-profile/${profileId}/stats`)
                     .then(response => response.json())
@@ -481,23 +458,51 @@
                             return;
                         }
 
-                        document.getElementById('statsUsername')
-                            .textContent = data.username;
+                        document.getElementById('statsUsername').textContent = data.username;
 
-                        document.getElementById('statsTotal')
-                            .textContent = data.total;
+                        const label1 = document.getElementById('statsLabel1');
+                        const label2 = document.getElementById('statsLabel2');
+                        const label3 = document.getElementById('statsLabel3');
+                        const label4 = document.getElementById('statsLabel4');
 
-                        document.getElementById('statsEasy')
-                            .textContent = data.easy;
+                        const value1 = document.getElementById('statsTotal');
+                        const value2 = document.getElementById('statsEasy');
+                        const value3 = document.getElementById('statsMedium');
+                        const value4 = document.getElementById('statsHard');
 
-                        document.getElementById('statsMedium')
-                            .textContent = data.medium;
+                        const rankingSection =
+                            document.getElementById('statsRankingSection');
 
-                        document.getElementById('statsHard')
-                            .textContent = data.hard;
+                        if (data.platform === 'leetcode') {
+                            rankingSection.classList.remove('d-none');
 
-                        document.getElementById('statsRanking')
+                            document.getElementById('statsRanking')
                             .textContent = data.ranking ?? 'Not available';
+
+                            label1.textContent = 'Total';
+                            label2.textContent = 'Easy';
+                            label3.textContent = 'Medium';
+                            label4.textContent = 'Hard';
+
+                            value1.textContent = data.total;
+                            value2.textContent = data.easy;
+                            value3.textContent = data.medium;
+                            value4.textContent = data.hard;
+
+                        } else if (data.platform === 'codeforces') {
+
+                            rankingSection.classList.add('d-none');
+
+                            label1.textContent = 'Rating';
+                            label2.textContent = 'Rank';
+                            label3.textContent = 'Max Rating';
+                            label4.textContent = 'Max Rank';
+
+                            value1.textContent = data.rating ?? 'Not available';
+                            value2.textContent = data.rank ?? 'Not available';
+                            value3.textContent = data.max_rating ?? 'Not available';
+                            value4.textContent = data.max_rank ?? 'Not available';
+                        }
 
                         content.classList.remove('d-none');
                     })
