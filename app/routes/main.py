@@ -573,3 +573,19 @@ def attempt_review(session_id, attempt_number):
                            problem=probelm_session.problem,
                            attempt=attempt,
                            review=attempt.review)
+
+@main.route('/coding-profile/<int:profile_id>/disconnect', methods=['POST'])
+@login_required
+def disconnect_coding_profile(profile_id):
+    profile = CodingProfile.query.filter_by(
+        id=profile_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    db.session.delete(profile)
+    db.session.commit()
+
+    return {
+        'success': True,
+        'message': 'Profile disconnected successfully'
+    }

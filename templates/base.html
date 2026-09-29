@@ -327,6 +327,14 @@
 
                         <button
                             type="button"
+                            id="disconnectProfileButton"
+                            class="btn btn-outline-danger d-none"
+                        >
+                            Disconnect Profile
+                        </button>
+
+                        <button
+                            type="button"
                             class="btn btn-secondary"
                             data-bs-dismiss="modal"
                         >
@@ -388,12 +396,22 @@
         const profileBackButton =
             document.getElementById('profileBackButton');
 
+        const disconnectProfileButton =
+            document.getElementById('disconnectProfileButton');
+
         document.querySelectorAll('.profile-item').forEach(function (profileItem) {
 
             profileItem.addEventListener('click', function () {
 
                 const profileId = this.getAttribute('data-profile-id');
                 const platform = this.getAttribute('data-platform');
+
+                disconnectProfileButton.setAttribute(
+                    'data-profile-id',
+                    profileId
+                );
+
+                disconnectProfileButton.classList.remove('d-none');
 
                 const profileList =
                     document.getElementById('profileList');
@@ -544,10 +562,42 @@
 
             profileBackButton.classList.add('d-none');
 
+            disconnectProfileButton.classList.add('d-none');
+            disconnectProfileButton.removeAttribute('data-profile-id');
+
             title.textContent = 'Coding Profiles';
 
             profileStatsIcon.classList.add('d-none');
             profileStatsIcon.src = '';
+        });
+
+        
+        disconnectProfileButton.addEventListener('click', function () {
+            const profileId = this.getAttribute('data-profile-id');
+
+            if (!profileId) {
+                return;
+            }
+
+            if (!confirm('Are you sure you want to disconnect this profile?')) {
+                return;
+            }
+
+            fetch(`/coding-profile/${profileId}/disconnect`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert(data.message || 'Unable to disconnect profile.');
+                        return;
+                    }
+
+                    window.location.reload();
+                })
+                .catch(() => {
+                    alert('Unable to connect to the server.');
+                });
         });
 
     </script>
