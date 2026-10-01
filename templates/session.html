@@ -200,7 +200,7 @@
                                 placeholder="Paste your code here..."
                                 rows="15"
                                 required
-                            ></textarea>
+                            >{{current_attempt.code if current_attempt else ''}}</textarea>
 
                             <!-- Bottom Controls -->
                             <div class="border-top p-3">
@@ -559,6 +559,33 @@
                                         </button>
                                     </form>
                                 </div>
+                            </div>
+                        {% else %}
+                            <div class="card-body text-center py-5">
+                                <h3 class="h5">
+                                    AI Review Unavailable
+                                </h3>
+
+                                <p class="text-body-secondary mb-4">
+                                    Your attempt was submitted, but the AI reviewer failed to generate a review.
+                                </p>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for(
+                                        'main.retry_review',
+                                        session_id=session.id,
+                                        attempt_id=current_attempt.id
+                                    ) }}"
+                                >
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        Retry AI Review
+                                    </button>
+                                </form>
+
                             </div>
                         {% endif %}
                     </div>

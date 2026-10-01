@@ -27,7 +27,7 @@ def dashboard():
 
     hint_assisted = ProblemSession.query.filter_by(user_id=current_user.id, status='completed').filter(ProblemSession.hint_level_unlocked > 0).count()
 
-    total_attempts = Attempt.query.join(ProblemSession).filter(ProblemSession.user_id==current_user.id).count()
+    total_attempts = Attempt.query.join(ProblemSession).join(Review, Review.attempt_id==Attempt.id).filter(ProblemSession.user_id==current_user.id).count()
 
     stats = {
         'total_attempted': total_attempted,
@@ -292,6 +292,9 @@ def session(session_id):
     has_accepted_attempt = Attempt.query.filter_by(
                             session_id=problem_session.id,
                             platform_verdict='accepted'
+                            ).join(
+                                Review,
+                               Review.attempt_id==Attempt.id
                             ).first() is not None
 
     solution_time_complexity = None
@@ -394,6 +397,17 @@ def submit_attempt(session_id):
         previous_review=previous_review
     )
 
+    if review_data.get('error'):
+        flash(
+            f'Attempt #{attempt_number} was submitted, but the AI review failed. Please retry submitting again.',
+            'error'
+        )
+
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
+
     # Save review
     review = Review(
         attempt_id=attempt.id,
@@ -417,6 +431,91 @@ def submit_attempt(session_id):
             db.session.commit()
 
     flash(f'Attempt #{attempt_number} submitted successfully.', 'success')
+
+    return redirect(url_for(
+        'main.session',
+        session_id=session_id
+    ))
+
+
+@main.route('/session/<int:session_id>/attempt/<int:attempt_id>/retry-review', methods=['POST'])
+@login_required
+def retry_review(session_id, attempt_id):
+    problem_session = ProblemSession.query.filter_by(
+        id=session_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    attempt = Attempt.query.filter_by(
+        id=attempt_id,
+        session_id=problem_session.id
+    ).first_or_404()
+
+    # Do not retry an attempt that already has a review
+    if attempt.review:
+        flash('This attempt already has an AI review.', 'error')
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
+
+    # Retry the AI reviewer using the same attempt
+    review_data = review_attempt(
+        problem=problem_session.problem,
+        attempt=attempt,
+        previous_review=None
+    )
+
+    # AI failed again
+    if review_data.get('error'):
+        flash(
+            'The AI review failed again. Please retry submitting again.',
+            'error'
+        )
+        return redirect(url_for(
+            'main.session',
+            session_id=session_id
+        ))
+
+    # Save successful review
+    review = Review(
+        attempt_id=attempt.id,
+        summary=review_data.get('summary'),
+        correct=review_data.get('correct', []),
+        issues=review_data.get('issues', []),
+        complexity_time=review_data.get('complexity', {}).get(
+            'time',
+            'O(?)'
+        ),
+        complexity_space=review_data.get('complexity', {}).get(
+            'space',
+            'O(?)'
+        ),
+        think_about_this=review_data.get('think_about_this'),
+        hints=review_data.get('hints', []),
+        vs_previous=review_data.get(
+            'vs_previous',
+            {
+                'improvements': [],
+                'remaining_issues': []
+            }
+        ),
+        status=review_data.get('status', 'needs_work')
+    )
+
+    db.session.add(review)
+    db.session.commit()
+
+    if attempt.platform_verdict == 'accepted':
+        if problem_session.status != 'completed':
+            problem_session.status = 'completed'
+            problem_session.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            db.session.commit()
+
+    flash(
+        f'AI review generated successfully for Attempt #{attempt.attempt_number}.',
+        'success'
+    )
 
     return redirect(url_for(
         'main.session',
