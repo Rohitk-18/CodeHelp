@@ -343,6 +343,71 @@ def session(session_id):
                          solution_explanation_display=solution_explanation_display)
 
 
+@main.route('/session/<int:session_id>/attempt/<int:attempt_id>/delete', methods=['POST'])
+@login_required
+def delete_attempt(session_id, attempt_id):
+    problem_session = ProblemSession.query.filter_by(
+        id=session_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    attempt = Attempt.query.filter_by(
+        id=attempt_id,
+        session_id=problem_session.id
+    ).first_or_404()
+
+    # Delete the associated review first
+    if attempt.review:
+        db.session.delete(attempt.review)
+
+    db.session.delete(attempt)
+    db.session.flush()
+
+    # Renumber remaining attempts chronologically
+    remaining_attempts = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).order_by(
+        Attempt.submitted_at.asc(),
+        Attempt.id.asc()
+    ).all()
+
+    for number, remaining_attempt in enumerate(
+        remaining_attempts, start=1
+    ):
+        remaining_attempt.attempt_number = number
+
+    # Recalculate session completion from remaining reviewed attempts
+    accepted_review_exists = Attempt.query.filter_by(
+        session_id=problem_session.id,
+        platform_verdict='accepted'
+    ).join(
+        Review,
+        Review.attempt_id == Attempt.id
+    ).first() is not None
+
+    if accepted_review_exists:
+        problem_session.status = 'completed'
+        if problem_session.completed_at is None:
+            problem_session.completed_at = (
+                datetime.now(timezone.utc).replace(tzinfo=None)
+            )
+    else:
+        problem_session.status = 'in_progress'
+        problem_session.completed_at = None
+
+    # Keep solution reveal state consistent with the remaining session
+    problem_session.solution_revealed = False
+
+    db.session.commit()
+
+    flash('Attempt deleted successfully.', 'success')
+
+    return redirect(url_for(
+        'main.session',
+        session_id=session_id
+    ))
+
+
 @main.route('/session/<int:session_id>/submit', methods=['POST'])
 @login_required
 def submit_attempt(session_id):
@@ -437,6 +502,32 @@ def submit_attempt(session_id):
         session_id=session_id
     ))
 
+@main.route('/session/<int:session_id>/delete', methods=['POST'])
+@login_required
+def delete_session(session_id):
+    problem_session = ProblemSession.query.filter_by(
+        id=session_id,
+        user_id=current_user.id
+    ).first_or_404()
+
+    # Delete reviews and attempts first
+    attempts = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).all()
+
+    for attempt in attempts:
+        if attempt.review:
+            db.session.delete(attempt.review)
+
+        db.session.delete(attempt)
+
+    # Delete the session
+    db.session.delete(problem_session)
+    db.session.commit()
+
+    flash('Problem session deleted successfully.', 'success')
+
+    return redirect(url_for('main.dashboard'))
 
 @main.route('/session/<int:session_id>/attempt/<int:attempt_id>/retry-review', methods=['POST'])
 @login_required

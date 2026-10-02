@@ -200,7 +200,7 @@
                                 placeholder="Paste your code here..."
                                 rows="15"
                                 required
-                            >{{current_attempt.code if current_attempt else ''}}</textarea>
+                            ></textarea>
 
                             <!-- Bottom Controls -->
                             <div class="border-top p-3">
@@ -648,23 +648,41 @@
                                 </td>
 
                                 <td>
-                                    {% if attempt.review %}
-                                    <a
-                                        href="{{ url_for(
-                                            'main.attempt_review',
-                                            session_id=session.id,
-                                            attempt_number=attempt.attempt_number
-                                        ) }}"
-                                        target="_blank"
-                                        class="btn btn-sm btn-outline-primary"
-                                    >
-                                        View review
-                                    </a>
-                                    {% else %}
-                                        <span class="text-body-secondary">
-                                            Review unavailable
-                                        </span>
-                                    {% endif %}
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-auto" style="width: 125px;">
+                                            {% if attempt.review %}
+                                                <a
+                                                    href="{{ url_for(
+                                                        'main.attempt_review',
+                                                        session_id=session.id,
+                                                        attempt_number=attempt.attempt_number
+                                                    ) }}"
+                                                    target="_blank"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                >
+                                                    View review
+                                                </a>
+                                            {% else %}
+                                                <span class="text-body-secondary">
+                                                    No review
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="col-auto ms-2">
+                                            <form method="POST"
+                                                action="{{ url_for('main.delete_attempt',
+                                                session_id=session.id,
+                                                attempt_id=attempt.id) }}"
+                                                onsubmit="return confirm('Delete this attempt and its AI review? This cannot be undone.');"
+                                                class="m-0"
+                                            >
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
