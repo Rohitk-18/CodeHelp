@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from app.models import db, CodingProfile, Problem, ProblemSession, Attempt, Review
 from app.services.leetcode import get_user_stats, get_problem
-from app.services.codeforces import get_user_profile, get_codeforces_stats
+from app.services.codeforces import get_user_profile, get_codeforces_stats, get_problem as get_codeforces_problem
 from app.ai.reviewer import review_attempt
 from app.ai.solution import generate_solution
 from datetime import datetime, timezone
@@ -199,7 +199,133 @@ def start_session():
                     db.session.add(problem)
                     db.session.flush()
 
-        else:
+        elif platform == 'codeforces':
+            codeforces_input = request.form.get(
+                'codeforces_problem',
+                ''
+            ).strip()
+
+            if not codeforces_input:
+                flash(
+                    'Please enter a Codeforces problem URL.',
+                    'error'
+                )
+                return redirect(url_for('main.start_session'))
+
+            # Accept:
+            # https://codeforces.com/contest/1900/problem/A
+            # https://codeforces.com/problemset/problem/1900/A
+            # 1900/A
+            match = re.search(
+                r'(?:contest/|problemset/problem/)?'
+                r'(\d+)/([A-Za-z]\d*)',
+                codeforces_input
+            )
+
+            if not match:
+                flash(
+                    'Invalid Codeforces problem. Use a problem URL '
+                    'or contest/index such as 1900/A.',
+                    'error'
+                )
+                return redirect(url_for('main.start_session'))
+
+            contest_id = match.group(1)
+            problem_index = match.group(2).upper()
+
+            external_id = f'{contest_id}/{problem_index}'
+                
+            # Check shared database first.
+            problem = Problem.query.filter_by(
+                platform='codeforces',
+                external_id=external_id
+            ).first()
+
+            if not problem:
+                # Fetch metadata only when the problem is not
+                # already stored.
+                data = get_codeforces_problem(
+                    contest_id,
+                    problem_index
+                )
+
+                if not data:
+                    flash(
+                        'Codeforces problem not found. '
+                        'Check the contest ID and problem index.',
+                        'error'
+                    )
+                    return redirect(
+                        url_for('main.start_session')
+                    )
+
+                problem_description = request.form.get(
+                    'problem_statement',
+                    ''
+                ).strip()
+
+                if not problem_description:
+                    flash(
+                        f"Codeforces problem found: "
+                        f"{data['name']} "
+                        f"(Rating: {data.get('rating', 'Unrated')}). "
+                        f"Please paste the problem statement. ",
+                        'error'
+                    )
+                    return redirect(
+                        url_for('main.start_session')
+                    )
+
+                examples = []
+
+                example_inputs = request.form.getlist(
+                    'example_input'
+                )
+                example_outputs = request.form.getlist(
+                    'example_output'
+                )
+
+                for example_input, example_output in zip(
+                    example_inputs,
+                    example_outputs
+                ):
+                    example_input = example_input.strip()
+                    example_output = example_output.strip()
+
+                    if example_input or example_output:
+                        examples.append({
+                            'input': example_input,
+                            'output': example_output
+                        })
+
+                constraints = [
+                    constraint.strip()
+                    for constraint in request.form.getlist(
+                        'constraints'
+                    )
+                    if constraint.strip()
+                ]
+
+                problem = Problem(
+                    platform='codeforces',
+                    external_id=external_id,
+                    title=data['name'],
+                    title_slug=external_id,
+                    description=problem_description,
+                    examples=examples,
+                    constraints=constraints,
+                    difficulty=(
+                        str(data['rating'])
+                        if data.get('rating') is not None
+                        else None
+                    ),
+                    tags=data.get('tags', [])
+                )
+
+                db.session.add(problem)
+                db.session.flush()
+
+        elif platform == 'other':
             # Other platforms — manual input
             title_slug = request.form.get('title_slug', '').strip()
             problem_title = request.form.get('problem_title', '').strip() or title_slug
@@ -218,10 +344,11 @@ def start_session():
                         'input': example_input,
                         'output': example_output
                     })
+
             constraints = [
-                constraints.strip()
-                for constraints in request.form.getlist('constraints')
-                if constraints.strip()
+                constraint.strip()
+                for constraint in request.form.getlist('constraints')
+                if constraint.strip()
             ]
 
             if not title_slug:
@@ -249,6 +376,7 @@ def start_session():
                     difficulty=request.form.get('difficulty'),
                     tags=[]
                 )
+
                 db.session.add(problem)
                 db.session.flush()
 

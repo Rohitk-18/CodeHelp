@@ -35,7 +35,30 @@
                             />
                         </div>
 
-                        <div id="slug-input" style="display:none;">
+                        <!-- Codeforces input -->
+                        <div id="codeforces-input" style="display:none;">
+                            <div class="mb-3">
+                                <label for="codeforces_problem" class="form-label">
+                                    Codeforces Problem
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="codeforces_problem"
+                                    id="codeforces_problem"
+                                    class="form-control"
+                                    placeholder="Problem URL or ID (e.g. 1900/A)"
+                                >
+
+                                <div class="form-text">
+                                    Enter a Codeforces problem URL or contest/index such as
+                                    1900/A.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Other / Manual input -->
+                        <div id="manual-input" style="display:none;">
                             <div class="d-flex align-items-center gap-2 mb-2">
                                 <input
                                     type="text"
@@ -43,14 +66,13 @@
                                     id="title_slug"
                                     class="form-control"
                                     placeholder="Problem slug"
-                                />
+                                >
 
                                 <span
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="right"
-                                    title="The slug is the last part of the problem URL. For example: codeforces.com/problems/two-sum"
-                     
-                                    >
+                                    title="Use a unique slug to identify your problem."
+                                >
                                     ℹ️
                                 </span>
                             </div>
@@ -64,104 +86,75 @@
                             />
 
                             <div class="mb-3">
-                                <label for="difficulty" class="form-label">Difficulty</label>
+                                <label for="difficulty" class="form-label">
+                                    Difficulty
+                                </label>
 
                                 <select
                                     name="difficulty"
                                     id="difficulty"
                                     class="form-select"
-                                    required
                                 >
-                                    <option value="" selected disabled>Select difficulty</option>
+                                    <option value="" selected disabled>
+                                        Select difficulty
+                                    </option>
                                     <option value="Easy">Easy</option>
                                     <option value="Medium">Medium</option>
                                     <option value="Hard">Hard</option>
                                 </select>
                             </div>
+                        </div>
 
-                            <textarea 
-                                name="problem_statement"
-                                id="problem_statement"
-                                class="form-control mb-3"
-                                placeholder="Paste the full problem statement here"
-                                rows="5"
-                            ></textarea>
+                        <div id="additional-problem-details" style="display:none;">
+                            <div class="mb-3">
+                                <label for="problem_statement" class="form-label">
+                                    Problem Statement
+                                </label>
+
+                                <textarea
+                                    name="problem_statement"
+                                    id="problem_statement"
+                                    class="form-control"
+                                    placeholder="Paste the full problem statement here"
+                                    rows="6"
+                                ></textarea>
+
+                                <div class="form-text">
+                                    Required when adding a new problem.
+                                </div>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label">
                                     Examples <span class="text-body-secondary">(optional)</span>
                                 </label>
 
-                                <div id="examples-container">
-                                    <div class="example-row border rounded p-3 mb-2">
-                                        <div class="mb-2">
-                                            <label class="form-label">Input</label>
-                                            <textarea
-                                                name="example_input"
-                                                class="form-control"
-                                                rows="1"
-                                                placeholder="Enter example input"
-                                            ></textarea>
-                                        </div>
+                                <div id="examples-container"></div>
 
-                                        <div class="mb-2">
-                                            <label class="form-label">Output</label>
-                                            <textarea
-                                                name="example_output"
-                                                class="form-control"
-                                                rows="1"
-                                                placeholder="Enter example output"
-                                            ></textarea>
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-danger btn-sm"
-                                            onclick="removeExample(this)"
-                                        >
-                                            Remove
-                                    </button>
-                                </div>
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    onclick="addExample()"
+                                >
+                                    + Add Example
+                                </button>
                             </div>
 
-                            <button
-                                type="button"
-                                class="btn btn-outline-secondary btn-sm"
-                                onclick="addExample()"
-                            >
-                                + Add Example
-                            </button>
-                        </div>
-            
-                        <label class="form-label mb-2">
-                            Constraints
-                        </label>
+                            <div class="mb-3">
+                                <label class="form-label mb-2">
+                                    Constraints
+                                </label>
 
-                            <div id="constraints-container">
-                                <div class="constraint-row d-flex gap-2 mb-2">
-                                    <input
-                                        type="text"
-                                        name="constraints"
-                                        class="form-control"
-                                        placeholder="Enter a constraint"
-                                    />
-                                    <button 
-                                        type="button" 
-                                        class="btn btn-outline-danger btn-sm"
-                                        onclick="removeConstraint(this)"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>    
+                                <div id="constraints-container"></div>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm mb-3"
+                                    onclick="addConstraint()"
+                                >
+                                    + Add constraint
+                                </button>
                             </div>
-
-                            <button 
-                                type="button" 
-                                class="btn btn-outline-secondary btn-sm mb-3"
-                                onclick="addConstraint()"
-                            >
-                                + Add constraint
-                            </button>
                         </div>
 
                         <button 
@@ -180,24 +173,41 @@
 <script>
 function updateProblemInput() {
     const platform = document.getElementById('platform').value;
+
     const lcInput = document.getElementById('leetcode-input');
-    const slugInput = document.getElementById('slug-input');
+    const codeforcesInput = document.getElementById('codeforces-input');
+    const manualInput = document.getElementById('manual-input');
+
     const lcIdentifier = document.getElementById('lc_identifier');
+    const codeforcesProblem = document.getElementById('codeforces_problem');
     const titleSlug = document.getElementById('title_slug');
+
+    const additionalDetails = document.getElementById('additional-problem-details');
+
+    // Hide everything first
+    lcInput.style.display = 'none';
+    codeforcesInput.style.display = 'none';
+    manualInput.style.display = 'none';
+    additionalDetails.style.display = 'none';
+
+    // Remove required validation from hidden fields
+    lcIdentifier.required = false;
+    codeforcesProblem.required = false;
+    titleSlug.required = false;
 
     if (platform === 'leetcode') {
         lcInput.style.display = 'block';
-        slugInput.style.display = 'none';
         lcIdentifier.required = true;
-        titleSlug.required = false;
-    } else if (platform) {
-        lcInput.style.display = 'none';
-        slugInput.style.display = 'block';
-        lcIdentifier.required = false;
+
+    } else if (platform === 'codeforces') {
+        codeforcesInput.style.display = 'block';
+        codeforcesProblem.required = true;
+        additionalDetails.style.display = 'block';
+
+    } else if (platform === 'other') {
+        manualInput.style.display = 'block';
         titleSlug.required = true;
-    } else {
-        lcInput.style.display = 'none';
-        slugInput.style.display = 'none';
+        additionalDetails.style.display = 'block';
     }
 }
 
