@@ -67,7 +67,8 @@
                             <p class="text-muted small mb-2">
                                 {{ s.problem.difficulty }}.
                                 {{ s.problem.platform | title }}.
-                                {{ s.attempts | length }} attempt(s)
+                                {{ s.attempts | length }} attempt(s).
+                                {{ s.started_at.strftime('%d %b %Y, %I:%M %p') }}
                             </p>
 
                             <div class="d-flex align-items-center flex-wrap column-gap-3 row-gap-2">
