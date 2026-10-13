@@ -193,6 +193,8 @@
                             action="{{ url_for('main.submit_attempt', session_id=session.id) }}"
                         >
 
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <!-- Code -->
                             <textarea
                                 name="code"
@@ -336,6 +338,7 @@
                                     method="POST"
                                     action="{{ url_for('main.reveal_solution', session_id=session.id) }}"
                                 >
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button
                                         type="submit"
                                         class="btn btn-outline-primary"
@@ -531,6 +534,7 @@
                                                         method="POST"
                                                         action="{{ url_for('main.unlock_hint', session_id=session.id) }}"
                                                     >
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button
                                                             type="submit"
                                                             class="btn btn-outline-primary btn-sm"
@@ -551,6 +555,7 @@
                                         method="POST"
                                         action="{{ url_for('main.reveal_solution', session_id=session.id) }}"
                                     >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button
                                             type="submit"
                                             class="btn btn-outline-primary"
@@ -578,6 +583,7 @@
                                         attempt_id=current_attempt.id
                                     ) }}"
                                 >
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button
                                         type="submit"
                                         class="btn btn-primary"
@@ -677,6 +683,7 @@
                                                 onsubmit="return confirm('Delete this attempt and its AI review? This cannot be undone.');"
                                                 class="m-0"
                                             >
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                                     Delete
                                                 </button>

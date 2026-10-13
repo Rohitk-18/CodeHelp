@@ -28,6 +28,8 @@
                         onsubmit="return validatePlatform()"
                     >
 
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                         <!-- Platform -->
                         <div class="mb-3">
                             <label class="form-label">

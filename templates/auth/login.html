@@ -29,6 +29,7 @@
                     <!-- Login Form -->
                     <div id="login-form">
                         <form method="POST" action="{{ url_for('auth.login') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
                                 <input type="email" name="email" class="form-control" placeholder="you@example.com" required />
@@ -48,6 +49,7 @@
                     <!-- Register Form -->
                     <div id="register-form" style="display:none;">
                         <form method="POST" action="{{ url_for('auth.register') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label class="form-label">Username</label>
                                 <input type="text" name="username" class="form-control" placeholder="Enter a username" required />
@@ -67,7 +69,6 @@
                             <button type="submit" class="btn btn-primary w-100">Create Account</button>
                         </form>
                     </div>
-
                 </div>
             </div>
         </div>

@@ -19,7 +19,9 @@ def index():
 def dashboard():
     profiles = CodingProfile.query.filter_by(user_id=current_user.id).all()
 
-    sessions = ProblemSession.query.filter_by(user_id=current_user.id).order_by(ProblemSession.started_at.desc()).all()
+    sessions = ProblemSession.query.filter_by(user_id=current_user.id).order_by(ProblemSession.started_at.desc()).limit(10).all()
+
+    total_sessions = ProblemSession.query.filter_by(user_id=current_user.id).count()
 
     total_attempted = ProblemSession.query.filter_by(user_id=current_user.id).with_entities(ProblemSession.problem_id).distinct().count()
 
@@ -35,7 +37,31 @@ def dashboard():
         'solved_independently': solved_independently,
         'hint_assisted': hint_assisted
     }
-    return render_template('dashboard.html', user=current_user, profiles=profiles, sessions=sessions, stats=stats)
+    return render_template('dashboard.html', user=current_user, profiles=profiles, sessions=sessions, stats=stats, total_sessions=total_sessions)
+
+
+@main.route('/session-history')
+@login_required
+def session_history():
+    page = request.args.get('page', 1, type=int)
+
+    pagination = ProblemSession.query.filter_by(
+        user_id=current_user.id
+    ).order_by(
+        ProblemSession.started_at.desc()
+    ).paginate(
+        page=page,
+        per_page=10,
+        error_out=False
+    )
+
+    return render_template(
+        'session_history.html',
+        user=current_user,
+        sessions=pagination.items,
+        pagination=pagination
+    )
+
 
 @main.route('/connect-profile', methods=['GET', 'POST'])
 @login_required

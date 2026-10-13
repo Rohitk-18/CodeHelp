@@ -5,8 +5,6 @@
 {% block content %}
 <div class="container mt-4 pt-2">
     <h1 class="fw-bold mb-4">Welcome, {{ user.username }}</h1>
-    <p class="text-muted mb-4">Your coding practice dashboard.</p>
-
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
             <div class="card text-center shadow-sm">
@@ -68,43 +66,52 @@
                                 {{ s.problem.difficulty }}.
                                 {{ s.problem.platform | title }}.
                                 {{ s.attempts | length }} attempt(s).
+                            </p>
+
+                            <p class="text-muted small mb-2">
                                 {{ s.started_at.strftime('%d %b %Y, %I:%M %p') }}
                             </p>
 
-                            <div class="d-flex align-items-center flex-wrap column-gap-3 row-gap-2">
-                                <a
-                                    href="{{ url_for('main.session', session_id=s.id) }}"
-                                    class="btn btn-sm btn-outline-primary"
-                                >
-                                    View session
-                                </a>
-
-                                <form
-                                    method="POST"
-                                    action="{{ url_for('main.delete_session', session_id=s.id) }}"
-                                    onsubmit="return confirm('Delete this entire session, including all attempts and reviews? This cannot be undone.');"
-                                    class="m-0"
-                                >
-                                    <button
-                                        type="submit"
-                                        class="btn btn-sm btn-outline-danger"
-                                    >
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-column align-items-end gap-2">
                             {% if s.status == 'completed' %}
                                 <span class="badge bg-success">Completed</span>
                             {% else %}
                                 <span class="badge bg-warning text-dark">In Progress</span>
                             {% endif %}
                         </div>
+
+                        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                            <a
+                                href="{{ url_for('main.session', session_id=s.id) }}"
+                                class="btn btn-sm btn-outline-primary"
+                            >
+                                View session
+                            </a>
+
+                            <form
+                                method="POST"
+                                action="{{ url_for('main.delete_session', session_id=s.id) }}"
+                                onsubmit="return confirm('Delete this entire session, including all attempts and reviews? This cannot be undone.');"
+                                class="m-0"
+                            >
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button
+                                    type="submit"
+                                    class="btn btn-sm btn-outline-danger"
+                                >
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
+            {% if total_sessions > 10 %}
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('main.session_history') }}" class="btn btn-outline-primary">
+                        View All Sessions ({{ total_sessions }})
+                    </a>
+                </div>
+            {% endif %}
         {% else %}
             <p class="text-muted">No sessions yet.</p>
         {% endif %}
