@@ -771,14 +771,46 @@ def retry_review(session_id, attempt_id):
 @main.route('/session/<int:session_id>/unlock-hint', methods=['POST'])
 @login_required
 def unlock_hint(session_id):
-    problem_session = ProblemSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
+    problem_session = ProblemSession.query.filter_by(
+        id=session_id,
+        user_id=current_user.id
+    ).first_or_404()
 
-    if problem_session.user_id != current_user.id:
-        abort(403)
+    try:
+        requested_level = int(request.form.get('hint_level', ''))
+    except (ValueError, TypeError):
+        abort(400)
 
-    if problem_session.hint_level_unlocked < 3:
-        problem_session.hint_level_unlocked += 1
-        db.session.commit()
+    next_hint_level = problem_session.hint_level_unlocked + 1
+
+    if requested_level != next_hint_level or requested_level > 3:
+        abort(400)
+
+    current_attempt = Attempt.query.filter_by(
+        session_id=problem_session.id
+    ).order_by(
+        Attempt.attempt_number.desc()
+    ).first()
+
+    if not current_attempt or not current_attempt.review:
+        abort(400)
+
+    hints = current_attempt.review.hints
+
+    if not isinstance(hints, list):
+        abort(400)
+
+    available_levels = {
+        hint.get('level')
+        for hint in hints
+        if isinstance(hint, dict)
+    }
+
+    if requested_level not in available_levels:
+        abort(400)
+
+    problem_session.hint_level_unlocked = requested_level
+    db.session.commit()
 
     return redirect(url_for('main.session', session_id=session_id))
 
